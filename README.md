@@ -4,6 +4,8 @@ This package helps you denormalize you Mongo collections by providing methods fo
 
 All this is done using the [collection-hooks package](https://github.com/matb33/meteor-collection-hooks). The updates are currently only done on the server using the `after` hooks and `Meteor.defer()` so they don't block further execution. The client will not see the changes to the cached fields until they're pushed from the server.
 
+[Read the API documentation](https://github.com/jeanfredrik/meteor-denormalize/blob/master/api.md)
+
 ## *collection*.cacheDoc
 
 Say we have collection called `Posts` and one called `Comments`. One post looks like this:
