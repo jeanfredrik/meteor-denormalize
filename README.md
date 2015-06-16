@@ -86,4 +86,49 @@ All posts will now have the `commentsCount` field and the value will update when
 
 ## *collection*.cacheField
 
-Coming soon!
+You can use `collection.cacheField` to update a field on a document whenever some other fields on the document changes. Say we want a single field containing both the title and the content so we easily can filter posts based on a text search:
+
+```javascript
+Comments.cacheField('_text', ['title', 'content']);
+```
+
+The `_text` field is updated when `title` or `content` changes. The result will be:
+
+```javascript
+{
+	_id: '9f7d606ac1bd7e5167da2fab',
+	title: 'My first post',
+	content: 'This is my first post',
+	_text: 'My first post, This is my first post'
+}
+```
+
+Now we can run `Posts.find({_text: /first/i})` instead of `Posts.find({$or: [{title: /first/i}, {content: /first/i}]})`.
+
+### The `value` callback
+
+As you can see in the previous example `cacheField` concatenates the watched fields using `', '` as glue. You can change this behavior by providing a callback function that will be used to generate the value. The callback recieves two arguments:
+
+	* __doc__ – The document
+	* __fields__ – An array of the watched fields' names
+
+So if we want `_text` to be lowercase and concatenated with just a space, we would to this instead (using underscore.js):
+
+```javascript
+Comments.cacheField('_text', ['title', 'content'], function(doc, fields) {
+	return _.map(fields, function(field) {
+		return doc[field].toString().toLowerCase();
+	}).join(' ');
+});
+```
+
+Or we could use whatever fields we want, not just the watched ones:
+
+```javascript
+Comments.cacheField('_text', ['title', 'content'], function(doc) {
+	return doc.title.toLowerCase() + ' ' + doc.content.toLowerCase();
+});
+```
+
+Note however that the update will only happen when a watched field changes.
+
