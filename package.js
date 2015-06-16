@@ -12,6 +12,7 @@ Package.onUse(function(api) {
   api.use('matb33:collection-hooks@0.7.13', 'server');
   api.use('dburles:collection-helpers@0.3.2', 'server');
   api.addFiles('methods/cacheDoc.js', 'server');
+  api.addFiles('methods/cacheCount.js', 'server');
 });
 
 Package.onTest(function(api) {

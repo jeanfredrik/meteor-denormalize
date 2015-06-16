@@ -74,7 +74,13 @@ Comments.cacheDoc('post', Posts, ['title'], {
 
 ## *collection*.cacheCount
 
-Coming soon!
+Continuing the previous example we can use `Posts.cacheCount()` to store the comment count on each post:
+
+```javascript
+Posts.cacheCount('commentsCount', Comments, 'post_id');
+```
+
+All posts will now have the `commentsCount` field and the value will update whenever a related comment is inserted/updated/removed. The first argument is the cache field, the second is the target collection and the third is the reference field on the target collection
 
 ## *collection*.cacheField
 
