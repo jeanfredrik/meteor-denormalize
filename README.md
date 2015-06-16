@@ -109,8 +109,8 @@ Now we can run `Posts.find({_text: /first/i})` instead of `Posts.find({$or: [{ti
 
 As you can see in the previous example `cacheField` concatenates the watched fields using `', '` as glue. You can change this behavior by providing a callback function that will be used to generate the value. The callback recieves two arguments:
 
-	* __doc__ – The document
-	* __fields__ – An array of the watched fields' names
+* __doc__ – The document
+* __fields__ – An array of the watched fields' names
 
 So if we want `_text` to be lowercase and concatenated with just a space, we would to this instead (using underscore.js):
 
