@@ -17,16 +17,12 @@ function updateCount(collection1, collection2, referenceField, cacheField, value
  * When a document in the target collection is inserted/updated/removed this denormalization updates the count on the references document in the main collection. The reference field is on the target collection.
  */
 Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referenceField) {
-	check(options, {
-		cacheField: String,
-		collection: Mongo.Collection,
-		referenceField: String,
-	});
+	check(cacheField, String);
+	check(collection, Mongo.Collection);
+	check(referenceField, String);
 
-	var cacheField = options.cacheField;
-	var referenceField = options.referenceField;
 	var collection1 = this;
-	var collection2 = options.collection;
+	var collection2 = collection;
 
 	//Update the count on the main collection after insert
 	collection1.after.insert(function(userId, doc) {

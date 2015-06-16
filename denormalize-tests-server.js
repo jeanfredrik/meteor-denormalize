@@ -3,13 +3,17 @@ var speed = 200;
 Posts = new Mongo.Collection('posts');
 Comments = new Mongo.Collection('comments');
 
-Tinytest.add("Comments.cacheDoc('post', Posts, ['title'])", function(test) {
+/*
+collection.cacheDoc()
+*/
+
+Tinytest.add("cacheDoc: Comments.cacheDoc('post', Posts, ['title'])", function(test) {
 	Posts.remove({});
 	Comments.remove({});
 	Comments.cacheDoc('post', Posts, ['title']);
 });
 
-Tinytest.addAsync("Insert comment", function(test, next) {
+Tinytest.addAsync("cacheDoc: Insert comment", function(test, next) {
 	Comments.insert({
 		_id: 'comment1',
 		post_id: 'post1',
@@ -21,7 +25,7 @@ Tinytest.addAsync("Insert comment", function(test, next) {
 	}, speed);
 });
 
-Tinytest.addAsync("Insert post", function(test, next) {
+Tinytest.addAsync("cacheDoc: Insert post", function(test, next) {
 	Posts.insert({
 		_id: 'post1',
 		title: 'My first post',
@@ -34,11 +38,11 @@ Tinytest.addAsync("Insert post", function(test, next) {
 	}, speed);
 });
 
-Tinytest.add("Collection helper", function(test) {
+Tinytest.add("cacheDoc: Collection helper", function(test) {
 	test.equal(Comments.findOne('comment1').post().title, Posts.findOne('post1').title);
 });
 
-Tinytest.addAsync("Update post title", function(test, next) {
+Tinytest.addAsync("cacheDoc: Update post title", function(test, next) {
 	Posts.update('post1', {$set: {
 		title: 'Not my first post',
 	}});
@@ -49,7 +53,7 @@ Tinytest.addAsync("Update post title", function(test, next) {
 	}, speed);
 });
 
-Tinytest.addAsync("Update comment post_id", function(test, next) {
+Tinytest.addAsync("cacheDoc: Update comment post_id", function(test, next) {
 	Comments.update('comment1', {$set: {
 		post_id: 'post2',
 	}});
@@ -67,7 +71,7 @@ Tinytest.addAsync("Update comment post_id", function(test, next) {
 	}, speed);
 });
 
-Tinytest.addAsync("Remove post", function(test, next) {
+Tinytest.addAsync("cacheDoc: Remove post", function(test, next) {
 	Posts.remove('post1');
 	Meteor.setTimeout(function() {
 		test.equal(Comments.findOne('comment1')._post, undefined);
@@ -75,3 +79,69 @@ Tinytest.addAsync("Remove post", function(test, next) {
 	}, speed);
 });
 
+/*
+collection.cacheCount()
+*/
+
+Tinytest.add("cacheCount: Posts.cacheCount('commentsCount', Comments, 'post_id')", function(test) {
+	Posts.remove({});
+	Comments.remove({});
+	Posts.cacheCount('commentsCount', Comments, 'post_id');
+});
+
+Tinytest.addAsync("cacheCount: Insert comment", function(test, next) {
+	Comments.insert({
+		_id: 'comment1',
+		post_id: 'post1',
+		content: 'Great post!',
+	});
+	Posts.insert({
+		_id: 'post1',
+		title: 'My first post',
+		content: 'This is my first post'
+	});
+	Meteor.setTimeout(function() {
+		test.equal(Posts.findOne('post1').commentsCount, 1);
+		next();
+	}, speed);
+});
+
+Tinytest.addAsync("cacheCount: Insert comment again", function(test, next) {
+	Comments.insert({
+		_id: 'comment2',
+		post_id: 'post1',
+		content: 'Love it!',
+	});
+	Meteor.setTimeout(function() {
+		test.equal(Posts.findOne('post1').commentsCount, 2);
+		next();
+	}, speed);
+});
+
+Tinytest.addAsync("cacheCount: Insert comment on other post", function(test, next) {
+	Comments.insert({
+		_id: 'comment3',
+		post_id: 'post2',
+		content: 'Love it!',
+	});
+	Meteor.setTimeout(function() {
+		test.equal(Posts.findOne('post1').commentsCount, 2);
+		next();
+	}, speed);
+});
+
+Tinytest.addAsync("cacheCount: Remove comment", function(test, next) {
+	Comments.remove('comment2');
+	Meteor.setTimeout(function() {
+		test.equal(Posts.findOne('post1').commentsCount, 1);
+		next();
+	}, speed);
+});
+
+Tinytest.addAsync("cacheCount: Update comment post_id", function(test, next) {
+	Comments.update('comment1', {$set: {post_id: 'post2'}});
+	Meteor.setTimeout(function() {
+		test.equal(Posts.findOne('post1').commentsCount, 0);
+		next();
+	}, speed);
+});
