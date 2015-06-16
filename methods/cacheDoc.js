@@ -10,7 +10,7 @@
  * @param {String|false} [options.helper] If the Collection Helpers package is installed a helper is created with this name. Defaults to `name`. Set to false if you don't want to create a helper.
  * @returns {undefined}
  *
- * When a document in the target collection is inserted/updated/removed this denormalization saves a copy of the document in the main collection. The reference field is on the target collection.
+ * When a document in the target collection is inserted/updated/removed this denormalization saves a copy of the document in the main collection. The reference field is on the main collection.
  */
 Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options) {
 
