@@ -35,6 +35,10 @@ Tinytest.addAsync("Insert post", function(test, next) {
 	}, speed);
 });
 
+Tinytest.add("Collection helper", function(test) {
+	test.equal(Comments.findOne('comment1').post().title, Posts.findOne('post1').title);
+});
+
 Tinytest.addAsync("Update post title", function(test, next) {
 	Posts.update('post1', {$set: {
 		title: 'Not my first post',
