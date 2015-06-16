@@ -2,17 +2,21 @@ Package.describe({
   name: 'jeanfredrik:denormalize',
   version: '0.0.1',
   summary: 'Provides simple methods for common denormalization tasks',
-  // URL to the Git repository containing the source code for this package.
-  git: '',
+  git: 'https://github.com/jeanfredrik/meteor-denormalize.git',
   documentation: 'README.md'
 });
 
 Package.onUse(function(api) {
   api.versionsFrom('1.0');
+  api.use(['mongo'], 'server');
+  api.use('matb33:collection-hooks@0.7.13', 'server');
+  api.addFiles('methods/cacheDoc.js', 'server');
 });
 
 Package.onTest(function(api) {
   api.use('tinytest');
+  api.use(['mongo', 'autopublish', 'insecure']);
   api.use('jeanfredrik:denormalize');
-  api.addFiles('denormalize-tests.js');
+  api.export(['Posts', 'Comments']);
+  api.addFiles('denormalize-tests-server.js', 'server');
 });
