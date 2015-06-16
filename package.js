@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jeanfredrik:denormalize',
-  version: '0.4.0',
+  version: '0.4.1',
   summary: 'Provides simple methods for common denormalization tasks',
   git: 'https://github.com/jeanfredrik/meteor-denormalize.git',
   documentation: 'README.md'
@@ -10,7 +10,7 @@ Package.onUse(function(api) {
   api.versionsFrom('1.0');
   api.use(['mongo', 'underscore'], 'server');
   api.use('matb33:collection-hooks@0.7.13', 'server');
-  api.use('dburles:collection-helpers@0.3.2', 'server');
+  api.use('dburles:collection-helpers@1.0.0', 'server');
 
   api.addFiles('denormalize-common.js');
   api.export(['Denormalize']);
