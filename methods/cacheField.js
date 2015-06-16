@@ -26,7 +26,7 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value) {
 		var self = this;
 		var fieldNames = _.keys(doc);
 		Meteor.defer(function() {
-			if(_.intersection(fieldNames, fields).length) {
+			if(haveDiffFieldValues(fields, doc, self.previous)) {
 				var $set = {};
 				$set[cacheField] = value(doc, fields);
 				collection.update(doc._id, {$set: $set});
@@ -38,7 +38,7 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value) {
 	collection.after.update(function(userId, doc, fieldNames) {
 		var self = this;
 		Meteor.defer(function() {
-			if(_.intersection(fieldNames, fields).length) {
+			if(haveDiffFieldValues(fields, doc, self.previous)) {
 				var $set = {};
 				$set[cacheField] = value(doc, fields);
 				collection.update(doc._id, {$set: $set});

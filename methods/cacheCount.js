@@ -37,7 +37,8 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		var self = this;
 		var fieldNames = _.keys(doc);
 		Meteor.defer(function() {
-			if(_.contains(fieldNames, referenceField)) {
+			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+			if(referenceFieldValue !== undefined) {
 				updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField]);
 			}
 		});
@@ -47,7 +48,8 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 	collection2.after.update(function(userId, doc, fieldNames) {
 		var self = this;
 		Meteor.defer(function() {
-			if(_.contains(fieldNames, referenceField)) {
+			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+			if(referenceFieldValue !== undefined) {
 				if(self.previous[referenceField]) {
 					updateCount(collection1, collection2, referenceField, cacheField, self.previous[referenceField]);
 				}
@@ -62,7 +64,8 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 	collection2.after.remove(function(userId, doc) {
 		var self = this;
 		Meteor.defer(function() {
-			if(doc[referenceField]) {
+			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+			if(referenceFieldValue !== undefined) {
 				updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField]);
 			}
 		});
