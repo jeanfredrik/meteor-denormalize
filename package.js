@@ -10,7 +10,7 @@ Package.onUse(function(api) {
   api.versionsFrom('1.0');
   api.use(['mongo', 'underscore'], 'server');
   api.use('matb33:collection-hooks@0.7.13', 'server');
-  api.use('dburles:collection-helpers@0.3.2', 'server');
+  api.use('dburles:collection-helpers@1.0.0', 'server');
 
   api.addFiles('denormalize-common.js');
   api.export(['Denormalize']);
