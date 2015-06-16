@@ -1,12 +1,11 @@
 var speed = 200;
 
 Posts = new Mongo.Collection('posts');
-Posts.remove({});
-
 Comments = new Mongo.Collection('comments');
-Comments.remove({});
 
 Tinytest.add("Comments.cacheDoc('post', Posts, ['title'])", function(test) {
+	Posts.remove({});
+	Comments.remove({});
 	Comments.cacheDoc('post', Posts, ['title']);
 });
 
@@ -33,6 +32,10 @@ Tinytest.addAsync("Insert post", function(test, next) {
 		test.equal(Comments.findOne('comment1')._post.title, Posts.findOne('post1').title);
 		next();
 	}, speed);
+});
+
+Tinytest.add("Collection helper", function(test) {
+	test.equal(Comments.findOne('comment1').post().title, Posts.findOne('post1').title);
 });
 
 Tinytest.addAsync("Update post title", function(test, next) {

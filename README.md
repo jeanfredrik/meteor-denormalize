@@ -4,6 +4,8 @@ This package helps you denormalize you Mongo collections by providing methods fo
 
 All this is done using the [collection-hooks package](https://github.com/matb33/meteor-collection-hooks). The updates are currently only done on the server using the `after` hooks and `Meteor.defer()` so they don't block further execution. The client will not see the changes to the cached fields until they're pushed from the server.
 
+[Read the API documentation](https://github.com/jeanfredrik/meteor-denormalize/blob/master/api.md)
+
 ## *collection*.cacheDoc
 
 Say we have collection called `Posts` and one called `Comments`. One post looks like this:
@@ -72,7 +74,13 @@ Comments.cacheDoc('post', Posts, ['title'], {
 
 ## *collection*.cacheCount
 
-Coming soon!
+Continuing the previous example we can use `Posts.cacheCount()` to store the comment count on each post:
+
+```javascript
+Posts.cacheCount('commentsCount', Comments, 'post_id');
+```
+
+All posts will now have the `commentsCount` field and the value will update whenever a related comment is inserted/updated/removed. The first argument is the cache field, the second is the target collection and the third is the reference field on the target collection
 
 ## *collection*.cacheField
 
