@@ -51,9 +51,9 @@ When a document in the target collection is inserted/updated/removed this denorm
 
 -
 
-### <a name="collection.cacheDoc"></a>*collection*.cacheDoc(cacheField, collection, referenceField)&nbsp;&nbsp;<sub><i>Server</i></sub> ###
+### <a name="collection.cacheCount"></a>*collection*.cacheCount(cacheField, collection, referenceField)&nbsp;&nbsp;<sub><i>Server</i></sub> ###
 
-*This method __cacheDoc__ is defined in `collection`*
+*This method __cacheCount__ is defined in `collection`*
 
 __Arguments__
 
