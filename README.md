@@ -2,6 +2,8 @@
 
 This package helps you denormalize you Mongo collections by providing methods for common denormalizations. For example, you can have the name of an author of a post automatically copied into the post. It updates if the author changed name or is removed. This lets you sort you posts after author name very easily. Simply do `Posts.cacheDoc('author', Authors, ['name'])`.
 
+**NOTE: The package API only works on the server!**
+
 All this is done using the [collection-hooks package](https://github.com/matb33/meteor-collection-hooks). The updates are currently only done on the server using the `after` hooks and `Meteor.defer()` so they don't block further execution. The client will not see the changes to the cached fields until they're pushed from the server.
 
 [Read the API documentation](https://github.com/jeanfredrik/meteor-denormalize/blob/master/api.md)
