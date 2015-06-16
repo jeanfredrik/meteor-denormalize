@@ -7,7 +7,7 @@ function updateCount(collection1, collection2, referenceField, cacheField, value
 }
 
 /**
- * @method collection.cacheDoc
+ * @method collection.cacheCount
  * @public
  * @param {String} cacheField The name of the cached field in the main collection.
  * @param {Mongo.Collection} collection The target collection

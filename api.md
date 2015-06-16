@@ -51,9 +51,9 @@ When a document in the target collection is inserted/updated/removed this denorm
 
 -
 
-### <a name="collection.cacheDoc"></a>*collection*.cacheDoc(cacheField, collection, referenceField)&nbsp;&nbsp;<sub><i>Server</i></sub> ###
+### <a name="collection.cacheCount"></a>*collection*.cacheCount(cacheField, collection, referenceField)&nbsp;&nbsp;<sub><i>Server</i></sub> ###
 
-*This method __cacheDoc__ is defined in `collection`*
+*This method __cacheCount__ is defined in `collection`*
 
 __Arguments__
 
@@ -76,5 +76,42 @@ __Returns__  *{undefined}*
 When a document in the target collection is inserted/updated/removed this denormalization updates the count on the references document in the main collection. The reference field is on the target collection.
 
 > ```Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referenceField) { ...``` [methods/cacheCount.js:19](methods/cacheCount.js#L19)
+
+
+-
+
+### <a name="collection.cacheField"></a>*collection*.cacheField(cacheField, fields, value)&nbsp;&nbsp;<sub><i>Server</i></sub> ###
+
+*This method __cacheField__ is defined in `collection`*
+
+__Arguments__
+
+* __cacheField__ *{String}*  
+
+ The name of the cached field
+
+* __fields__ *{[String[]](#String[])}*  
+
+ An array of field names that should be copied from the original document in the target collection
+
+* __value__ *{Function}*  
+
+ A function that creates the new value. The function is called with two arguments:
+
+    * __doc__ *{Object}*  
+
+    The document that will be updated
+
+    * __fields__ *{[String[]](#String[])}*  
+
+    The watched fields
+
+
+__Returns__  *{undefined}*
+
+
+When a document in the collection is inserted/updated this denormalization updates the cached field with a value based on the same document
+
+> ```Mongo.Collection.prototype.cacheField = function(cacheField, fields, value) { ...``` [methods/cacheField.js:13](methods/cacheField.js#L13)
 
 

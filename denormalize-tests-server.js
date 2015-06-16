@@ -145,3 +145,57 @@ Tinytest.addAsync("cacheCount: Update comment post_id", function(test, next) {
 		next();
 	}, speed);
 });
+
+/*
+collection.cacheField()
+*/
+
+Tinytest.add("cacheField: Posts.cacheField('_text', ['title', 'content'])", function(test) {
+	Posts.remove({});
+	Comments.remove({});
+	Posts.cacheField('_text', ['title', 'content']);
+});
+
+Tinytest.addAsync("cacheField: Insert post", function(test, next) {
+	Posts.insert({
+		_id: 'post1',
+		title: 'ABC',
+		content: 'DEF'
+	});
+	Meteor.setTimeout(function() {
+		test.equal(Posts.findOne('post1')._text, 'ABC, DEF');
+		next();
+	}, speed);
+});
+
+Tinytest.addAsync("cacheField: value callback doc", function(test, next) {
+	Posts.cacheField('_doc', ['title', 'content'], function(doc, fields) {
+		return doc;
+	});
+	Posts.insert({
+		_id: 'post2',
+		title: 'ABC',
+		content: 'DEF'
+	});
+	Meteor.setTimeout(function() {
+		test.equal(Posts.findOne('post2')._doc._id, Posts.findOne('post2')._id);
+		next();
+	}, speed);
+});
+
+Tinytest.addAsync("cacheField: value callback fields", function(test, next) {
+	Posts.cacheField('_fields', ['title', 'content'], function(doc, fields) {
+		return fields.join(',');
+	});
+	Posts.insert({
+		_id: 'post3',
+		title: 'ABC',
+		content: 'DEF'
+	});
+	Meteor.setTimeout(function() {
+		test.equal(Posts.findOne('post3')._fields, 'title,content');
+		next();
+	}, speed);
+});
+
+
