@@ -57,7 +57,8 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	if(helper && Match.test(collection1.helpers, Function)) {
 		var helpers = {};
 		helpers[helper] = function() {
-			return this[referenceField] && collection2.findOne(this[referenceField]);
+			var fieldValue = Denormalize.getProp(this, referenceField);
+			return fieldValue && collection2.findOne(fieldValue);
 		};
 		collection1.helpers(helpers);
 	}
@@ -67,8 +68,9 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 		var self = this;
 		var fieldNames = _.keys(doc);
 		Meteor.defer(function() {
-			if(_.contains(fieldNames, referenceField)) {
-				var doc2 = collection2.findOne(doc[referenceField], {transform: null, fields: fieldsInFind});
+			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+			if(referenceFieldValue !== undefined) {
+				var doc2 = collection2.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind});
 				if(doc2) {
 					var $set = {};
 					$set[cacheField] = doc2;
@@ -81,13 +83,12 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	//Update the cached field on the main collection if a matching doc on the target collection is inserted
 	collection2.after.insert(function(userId, doc) {
 		var self = this;
-		var fieldNames = _.keys(doc);
 		Meteor.defer(function() {
-			if(_.intersection(fieldNames, fieldsToCopy).length) {
+			if(haveDiffFieldValues(fieldsToCopy, doc, self.previous)) {
 				var selector = {};
 				selector[referenceField] = doc._id;
 				var $set = {};
-				$set[cacheField] = _.pick(doc, fieldsToCopy);
+				$set[cacheField] = Denormalize.getProp(doc, fieldsToCopy, true);
 				collection1.update(selector, {$set: $set});
 			}
 		});
@@ -97,8 +98,9 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	collection1.after.update(function(userId, doc, fieldNames) {
 		var self = this;
 		Meteor.defer(function() {
-			if(_.contains(fieldNames, referenceField)) {
-				var doc2 = collection2.findOne(doc[referenceField], {transform: null, fields: fieldsInFind});
+			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+			if(referenceFieldValue !== undefined) {
+				var doc2 = collection2.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind});
 				if(doc2) {
 					var $set = {};
 					$set[cacheField] = doc2;
@@ -116,7 +118,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	collection2.after.update(function(userId, doc, fieldNames) {
 		var self = this;
 		Meteor.defer(function() {
-			if(_.intersection(fieldNames, fieldsToCopy).length) {
+			if(haveDiffFieldValues(fieldsToCopy, doc, self.previous)) {
 				var selector = {};
 				selector[referenceField] = doc._id;
 				var $set = {};
