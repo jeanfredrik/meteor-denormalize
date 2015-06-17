@@ -132,3 +132,7 @@ Comments.cacheField('_text', ['title', 'content'], function(doc) {
 
 Note however that the update will only happen when a watched field changes.
 
+## Integration with SimpleSchema/Collection2
+
+If you're using the [collection2 package](https://github.com/aldeed/meteor-simple-schema) and have a schema attached to your collections, Denormalize will bypass validation. If you want to validate you must pass `validate: true` as an option in the methods.
+

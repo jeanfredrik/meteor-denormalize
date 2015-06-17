@@ -21,6 +21,10 @@ Denormalize.fieldsJoiner = function(fields, glue) {
 	}
 }
 
+Denormalize.getRealCollection = getRealCollection = function(collection, validate) {
+	return !validate && Package['aldeed:collection2'] ? collection._collection : collection;
+}
+
 Denormalize.getProp = getProp = function(obj, fields, returnObject) {
 	if(_.isString(fields)) {
 		var field = fields;
