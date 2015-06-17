@@ -22,8 +22,8 @@ Package.onUse(function(api) {
 
   //Weak 3rd party packages
   api.use([
-    'dburles:collection-helpers',
-    'aldeed:collection2',
+    'dburles:collection-helpers@1.0.0',
+    'aldeed:collection2@2.0.0',
   ], {where: 'server', weak: true});
 
   api.addFiles('denormalize-common.js');
