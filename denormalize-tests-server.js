@@ -10,6 +10,20 @@ collection.cacheDoc()
 Tinytest.add("cacheDoc: Comments.cacheDoc('post', Posts, ['title'])", function(test) {
 	Posts.remove({});
 	Comments.remove({});
+	Comments.attachSchema(new SimpleSchema({
+		_id: {
+			type: String,
+			optional: true,
+		},
+		post_id: {
+			type: String,
+			optional: true,
+		},
+		content: {
+			type: String,
+			optional: true,
+		},
+	}));
 	Comments.cacheDoc('post', Posts, ['title']);
 });
 

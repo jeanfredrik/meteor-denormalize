@@ -1,9 +1,9 @@
-function updateCount(collection1, collection2, referenceField, cacheField, value) {
+function updateCount(collection1, collection2, referenceField, cacheField, value, validate) {
 	var selector = {};
 	selector[referenceField] = value;
 	var $set = {};
 	$set[cacheField] = collection2.find(selector).count();
-	collection1.update(value, {$set: $set});
+	getRealCollection(collection1, validate).update({_id: value}, {$set: $set});
 }
 
 /**
@@ -16,11 +16,24 @@ function updateCount(collection1, collection2, referenceField, cacheField, value
  *
  * When a document in the target collection is inserted/updated/removed this denormalization updates the count on the references document in the main collection. The reference field is on the target collection.
  */
-Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referenceField) {
+Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referenceField, options) {
 	check(cacheField, String);
 	check(collection, Mongo.Collection);
 	check(referenceField, String);
 
+	if(!Match.test(options, Object)) {
+		options = {};
+	}
+
+	_.defaults(options, {
+		validate: false,
+	});
+
+	check(options, {
+		validate: Boolean,
+	});
+
+	var validate = options.validate;
 	var collection1 = this;
 	var collection2 = collection;
 
@@ -39,7 +52,7 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
 			if(referenceFieldValue !== undefined) {
-				updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField]);
+				updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField], validate);
 			}
 		});
 	});
@@ -54,7 +67,7 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 					updateCount(collection1, collection2, referenceField, cacheField, self.previous[referenceField]);
 				}
 				if(doc[referenceField]) {
-					updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField]);
+					updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField], validate);
 				}
 			}
 		});
@@ -66,7 +79,7 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
 			if(referenceFieldValue !== undefined) {
-				updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField]);
+				updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField], validate);
 			}
 		});
 	});

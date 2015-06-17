@@ -34,12 +34,18 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 		delete options.helper;
 	}
 
+	_.defaults(options, {
+		validate: false,
+	});
+
 	check(options, {
 		cacheField: String,
 		referenceField: String,
 		helper: Match.Optional(String),
+		validate: Boolean,
 	});
 
+	var validate = options.validate;
 	var fieldsToCopy = fields;
 	var cacheField = options.cacheField;
 	var referenceField = options.referenceField;
@@ -74,7 +80,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 				if(doc2) {
 					var $set = {};
 					$set[cacheField] = doc2;
-					collection1.update(doc._id, {$set: $set});
+					getRealCollection(collection1, validate).update({_id: doc._id}, {$set: $set});
 				}
 			}
 		});
@@ -89,7 +95,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 				selector[referenceField] = doc._id;
 				var $set = {};
 				$set[cacheField] = Denormalize.getProp(doc, fieldsToCopy, true);
-				collection1.update(selector, {$set: $set});
+				getRealCollection(collection1, validate).update(selector, {$set: $set});
 			}
 		});
 	});
@@ -104,11 +110,11 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 				if(doc2) {
 					var $set = {};
 					$set[cacheField] = doc2;
-					collection1.update(doc._id, {$set: $set});
+					getRealCollection(collection1, validate).update({_id: doc._id}, {$set: $set});
 				} else {
 					var $unset = {};
 					$unset[cacheField] = 1;
-					collection1.update(doc._id, {$unset: $unset});
+					getRealCollection(collection1, validate).update({_id: doc._id}, {$unset: $unset});
 				}
 			}
 		});
@@ -123,7 +129,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 				selector[referenceField] = doc._id;
 				var $set = {};
 				$set[cacheField] = _.pick(doc, fieldsToCopy);
-				collection1.update(selector, {$set: $set});
+				getRealCollection(collection1, validate).update(selector, {$set: $set});
 			}
 		});
 	});
@@ -136,7 +142,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 			selector[referenceField] = doc._id;
 			var $unset = {};
 			$unset[cacheField] = 1;
-			collection1.update(selector, {$unset: $unset});
+			getRealCollection(collection1, validate).update(selector, {$unset: $unset});
 		});
 	});
 

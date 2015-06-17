@@ -10,7 +10,7 @@
  *
  * When a document in the collection is inserted/updated this denormalization updates the cached field with a value based on the same document
  */
-Mongo.Collection.prototype.cacheField = function(cacheField, fields, value) {
+Mongo.Collection.prototype.cacheField = function(cacheField, fields, value, options) {
 	if(value === undefined) {
 		value = Denormalize.fieldsJoiner();
 	}
@@ -19,6 +19,19 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value) {
 	check(cacheField, String);
 	check(value, Function);
 
+	if(!Match.test(options, Object)) {
+		options = {};
+	}
+
+	_.defaults(options, {
+		validate: false,
+	});
+
+	check(options, {
+		validate: Boolean,
+	});
+
+	var validate = options.validate;
 	var collection = this;
 
 	//Update the cached field after insert
@@ -29,7 +42,7 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value) {
 			if(haveDiffFieldValues(fields, doc, self.previous)) {
 				var $set = {};
 				$set[cacheField] = value(doc, fields);
-				collection.update(doc._id, {$set: $set});
+				getRealCollection(collection, validate).update({_id: doc._id}, {$set: $set});
 			}
 		});
 	});
@@ -41,10 +54,9 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value) {
 			if(haveDiffFieldValues(fields, doc, self.previous)) {
 				var $set = {};
 				$set[cacheField] = value(doc, fields);
-				collection.update(doc._id, {$set: $set});
+				getRealCollection(collection, validate).update({_id: doc._id}, {$set: $set});
 			}
 		});
 	});
 
 }
-
