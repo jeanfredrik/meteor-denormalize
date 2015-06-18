@@ -134,5 +134,47 @@ Note however that the update will only happen when a watched field changes.
 
 ## Integration with SimpleSchema/Collection2
 
-If you're using the [collection2 package](https://github.com/aldeed/meteor-simple-schema) and have a schema attached to your collections, Denormalize will bypass validation. If you want to validate you must pass `validate: true` as an option in the methods.
+If you're using the [collection2 package](https://github.com/aldeed/meteor-simple-schema) and have a schema attached to your collections, Denormalize will bypass validation by default. If you want to validate you must pass `validate: true` as an option.
 
+### Example
+
+Say we have the following schema for our `Posts` collection:
+
+```javascript
+new SimpleSchema({
+	'title': {
+		type: String
+	},
+	'content': {
+		type: String
+	}
+});
+```
+
+And then we run this:
+
+```javascript
+Posts.cacheCount('commentsCount', Comments, 'post_id');
+```
+
+Collection2 would not allow `commentsCount` to be added to a post since it's not in the schema. Therefore cleaning/validation is bypassed by default. You can prevent this bypass by setting `validate: true`, like this:
+
+```javascript
+Posts.cacheCount('commentsCount', Comments, 'post_id', {validate: true});
+```
+
+But then you'd also have to add `commentsCount` to the schema:
+
+```javascript
+new SimpleSchema({
+	'title': {
+		type: String
+	},
+	'content': {
+		type: String
+	},
+	'commentsCount': {
+		type: Number
+	}
+});
+```
