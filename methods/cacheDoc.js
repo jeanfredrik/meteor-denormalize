@@ -89,7 +89,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	collection2.after.insert(function(userId, doc) {
 		var self = this;
 		Meteor.defer(function() {
-			if(haveDiffFieldValues(fieldsToCopy, doc, self.previous)) {
+			if(haveDiffFieldValues(fieldsToCopy, doc, {})) {
 				var selector = {};
 				selector[referenceField] = doc._id;
 				var $set = {};
