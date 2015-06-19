@@ -112,7 +112,7 @@ __Returns__  *{undefined}*
 
 When a document in the target collection is inserted/updated/removed this denormalization updates the count on the references document in the main collection. The reference field is on the target collection.
 
-> ```Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referenceField) { ...``` [methods/cacheCount.js:19](methods/cacheCount.js#L19)
+> ```Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referenceField, options) { ...``` [methods/cacheCount.js:19](methods/cacheCount.js#L19)
 
 
 ***
@@ -153,6 +153,6 @@ __Returns__  *{undefined}*
 
 When a document in the collection is inserted/updated this denormalization updates the cached field with a value based on the same document
 
-> ```Mongo.Collection.prototype.cacheField = function(cacheField, fields, value) { ...``` [methods/cacheField.js:13](methods/cacheField.js#L13)
+> ```Mongo.Collection.prototype.cacheField = function(cacheField, fields, value, options) { ...``` [methods/cacheField.js:13](methods/cacheField.js#L13)
 
 
