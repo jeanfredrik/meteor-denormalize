@@ -105,7 +105,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 			debug('fields to copy:', fieldsToCopy);
 			debug('changed fields:', fieldNames);
 
-			if(haveDiffFieldValues(fieldsToCopy, doc, self.previous)) {
+			if(haveDiffFieldValues(fieldsToCopy, doc, {})) {
 				debug('-> Update cache field');
 				var selector = {};
 				selector[referenceField] = doc._id;
