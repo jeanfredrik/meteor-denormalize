@@ -38,6 +38,11 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value, opti
 	collection.after.insert(function(userId, doc) {
 		var self = this;
 		Meteor.defer(function() {
+
+			debug('\n'+collection._name+'.cacheField');
+			debug(collection._name+'.after.insert', doc._id);
+			debug('-> Update cache field');
+
 			var val = value(doc, fields);
 
 			if(val !== undefined) {
@@ -51,8 +56,17 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value, opti
 	//Update the cached field if any of the watched fields are changed
 	collection.after.update(function(userId, doc) {
 		var self = this;
+		var fieldNames = Denormalize.debug && changedFields(fields, doc, self.previous);
+
 		Meteor.defer(function() {
+
+			debug('\n'+collection._name+'.cacheField');
+			debug(collection._name+'.after.insert', doc._id);
+			debug('watched fields:', fields);
+			debug('changed fields:', fieldNames);
+
 			if(haveDiffFieldValues(fields, doc, self.previous)) {
+				debug('-> Update cache field');
 				var val = value(doc, fields);
 
 				if(val !== undefined) {
@@ -64,6 +78,8 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value, opti
 					$unset[cacheField] = 1;
 					getRealCollection(collection, validate).update({_id: doc._id}, {$unset: $unset});
 				}
+			} else {
+				debug('-> Do nothing');
 			}
 		});
 	});

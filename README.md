@@ -178,3 +178,11 @@ new SimpleSchema({
 	}
 });
 ```
+
+## Debugging
+
+This packages is quite new and probably has room for improvement. If you experience problems or want to help out you can activate debug messages to see what's going on when the documents are updated. Activate debug messages like this:
+
+```javascript
+Denormalize.debug = true;
+```

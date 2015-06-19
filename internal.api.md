@@ -8,6 +8,18 @@ __File: ["denormalize-common.js"](denormalize-common.js) Where: {client|server}_
 
 ***
 
+### <a name="Denormalize.debug"></a>*Denormalize*.debug {any}&nbsp;&nbsp;<sub><i>Anywhere</i></sub> ###
+
+*This property __debug__ is defined in `Denormalize`*
+
+
+Set to `true` to show debug messages.
+
+> ```Denormalize.debug = false;``` [denormalize-common.js:9](denormalize-common.js#L9)
+
+
+-
+
 ### <a name="Denormalize.fieldsJoiner"></a>*Denormalize*.fieldsJoiner(fields, glue)&nbsp;&nbsp;<sub><i>Anywhere</i></sub> ###
 
 *This method is private*
@@ -30,7 +42,7 @@ A callback that can be used in `collection.cacheField()`
 
 Generates a callback that can be used in `collection.cacheField()`. The value will be a concatenation of the fields using `glue`.
 
-> ```Denormalize.fieldsJoiner = function(fields, glue) { ...``` [denormalize-common.js:12](denormalize-common.js#L12)
+> ```Denormalize.fieldsJoiner = function(fields, glue) { ...``` [denormalize-common.js:30](denormalize-common.js#L30)
 
 
 ***
