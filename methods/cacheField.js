@@ -37,24 +37,33 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value, opti
 	//Update the cached field after insert
 	collection.after.insert(function(userId, doc) {
 		var self = this;
-		var fieldNames = _.keys(doc);
 		Meteor.defer(function() {
-			if(haveDiffFieldValues(fields, doc, self.previous)) {
+			var val = value(doc, fields);
+
+			if(val !== undefined) {
 				var $set = {};
-				$set[cacheField] = value(doc, fields);
+				$set[cacheField] = val;
 				getRealCollection(collection, validate).update({_id: doc._id}, {$set: $set});
 			}
 		});
 	});
 
 	//Update the cached field if any of the watched fields are changed
-	collection.after.update(function(userId, doc, fieldNames) {
+	collection.after.update(function(userId, doc) {
 		var self = this;
 		Meteor.defer(function() {
 			if(haveDiffFieldValues(fields, doc, self.previous)) {
-				var $set = {};
-				$set[cacheField] = value(doc, fields);
-				getRealCollection(collection, validate).update({_id: doc._id}, {$set: $set});
+				var val = value(doc, fields);
+
+				if(val !== undefined) {
+					var $set = {};
+					$set[cacheField] = val;
+					getRealCollection(collection, validate).update({_id: doc._id}, {$set: $set});
+				} else {
+					var $unset = {};
+					$unset[cacheField] = 1;
+					getRealCollection(collection, validate).update({_id: doc._id}, {$unset: $unset});
+				}
 			}
 		});
 	});
