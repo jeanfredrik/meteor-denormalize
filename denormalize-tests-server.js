@@ -2,6 +2,7 @@ var speed = 200;
 
 Posts = new Mongo.Collection('posts');
 Comments = new Mongo.Collection('comments');
+Denormalize.debug = true;
 
 /*
 collection.cacheDoc()

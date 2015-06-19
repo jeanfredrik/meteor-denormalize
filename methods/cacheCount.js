@@ -41,6 +41,12 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 	collection1.after.insert(function(userId, doc) {
 		var self = this;
 		Meteor.defer(function() {
+
+			debug('\n'+collection1._name+'.cacheCount');
+			debug(collection1._name+'.after.insert', doc._id);
+			debug('referenceField value:', doc._id);
+			debug('-> Update cache field');
+
 			updateCount(collection1, collection2, referenceField, cacheField, doc._id);
 		});
 	});
@@ -50,8 +56,16 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		var self = this;
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+
+			debug('\n'+collection1._name+'.cacheCount');
+			debug(collection2._name+'.after.insert', doc._id);
+			debug('referenceField value:', referenceFieldValue);
+
 			if(referenceFieldValue !== undefined) {
+				debug('-> Update cache field');
 				updateCount(collection1, collection2, referenceField, cacheField, referenceFieldValue, validate);
+			} else {
+				debug('-> Do nothing');
 			}
 		});
 	});
@@ -62,13 +76,22 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
 			var referenceFieldPreviousValue = Denormalize.getProp(self.previous, referenceField);
+
+			debug('\n'+collection1._name+'.cacheDoc');
+			debug(collection2._name+'.after.update', doc._id);
+			debug('referenceField value:', referenceFieldValue);
+			debug('referenceField previous value:', referenceFieldPreviousValue);
+
 			if(referenceFieldValue !== referenceFieldPreviousValue) {
+				debug('-> Update cache field');
 				if(referenceFieldPreviousValue) {
 					updateCount(collection1, collection2, referenceField, cacheField, referenceFieldPreviousValue);
 				}
 				if(referenceFieldValue) {
 					updateCount(collection1, collection2, referenceField, cacheField, referenceFieldValue, validate);
 				}
+			} else {
+				debug('-> Do nothing');
 			}
 		});
 	});
@@ -78,8 +101,16 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		var self = this;
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+
+			debug('\n'+collection1._name+'.cacheCount');
+			debug(collection2._name+'.after.remove', doc._id);
+			debug('referenceField value:', referenceFieldValue);
+
 			if(referenceFieldValue !== undefined) {
+				debug('-> Update cache field');
 				updateCount(collection1, collection2, referenceField, cacheField, referenceFieldValue, validate);
+			} else {
+				debug('-> Do nothing');
 			}
 		});
 	});

@@ -1,6 +1,24 @@
 Denormalize = {};
 
 /**
+ * @property Denormalize.debug
+ * @public
+ *
+ * Set to `true` to show debug messages.
+ */
+Denormalize.debug = false;
+
+debug = function() {
+	if(Denormalize.debug) console.log.apply(this, arguments);
+};
+
+changedFields = function(fields, doc1, doc2) {
+	return _.filter(fields, function(field) {
+		return Denormalize.getProp(doc1, field) !== Denormalize.getProp(doc2, field);
+	});
+}
+
+/**
  * @method Denormalize.fieldsJoiner
  * @private
  * @param {String[]} fields An array of the fields that should be concatenated
