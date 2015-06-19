@@ -41,18 +41,17 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 	collection1.after.insert(function(userId, doc) {
 		var self = this;
 		Meteor.defer(function() {
-			updateCount(collection1, collection2, referenceField, cacheField, doc._id)
+			updateCount(collection1, collection2, referenceField, cacheField, doc._id);
 		});
 	});
 
 	//Unset the count when a referencing doc in target collection is inserted
 	collection2.after.insert(function(userId, doc) {
 		var self = this;
-		var fieldNames = _.keys(doc);
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
 			if(referenceFieldValue !== undefined) {
-				updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField], validate);
+				updateCount(collection1, collection2, referenceField, cacheField, referenceFieldValue, validate);
 			}
 		});
 	});
@@ -62,12 +61,13 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		var self = this;
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
-			if(referenceFieldValue !== undefined) {
-				if(self.previous[referenceField]) {
-					updateCount(collection1, collection2, referenceField, cacheField, self.previous[referenceField]);
+			var referenceFieldPreviousValue = Denormalize.getProp(self.previous, referenceField);
+			if(referenceFieldValue !== referenceFieldPreviousValue) {
+				if(referenceFieldPreviousValue) {
+					updateCount(collection1, collection2, referenceField, cacheField, referenceFieldPreviousValue);
 				}
-				if(doc[referenceField]) {
-					updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField], validate);
+				if(referenceFieldValue) {
+					updateCount(collection1, collection2, referenceField, cacheField, referenceFieldValue, validate);
 				}
 			}
 		});
@@ -79,7 +79,7 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
 			if(referenceFieldValue !== undefined) {
-				updateCount(collection1, collection2, referenceField, cacheField, doc[referenceField], validate);
+				updateCount(collection1, collection2, referenceField, cacheField, referenceFieldValue, validate);
 			}
 		});
 	});

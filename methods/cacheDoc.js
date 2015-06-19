@@ -45,13 +45,13 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 		validate: Boolean,
 	});
 
-	var validate = options.validate;
 	var fieldsToCopy = fields;
 	var cacheField = options.cacheField;
 	var referenceField = options.referenceField;
 	var collection1 = this;
 	var collection2 = collection;
 	var helper = options.helper;
+	var validate = options.validate;
 
 	//Fields specifier for Mongo.Collection.find
 	var fieldsInFind = {_id: 0};
@@ -72,7 +72,6 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	//Update the cached field on the main collection after insert
 	collection1.after.insert(function(userId, doc) {
 		var self = this;
-		var fieldNames = _.keys(doc);
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
 			if(referenceFieldValue !== undefined) {
@@ -101,12 +100,13 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	});
 
 	//Update the cached field on the main collection if the referenceField field is changed
-	collection1.after.update(function(userId, doc, fieldNames) {
+	collection1.after.update(function(userId, doc) {
 		var self = this;
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
-			if(referenceFieldValue !== undefined) {
-				var doc2 = collection2.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind});
+			var referenceFieldPreviousValue = Denormalize.getProp(self.previous, referenceField);
+			if(referenceFieldValue !== referenceFieldPreviousValue) {
+				var doc2 = referenceFieldValue && collection2.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind});
 				if(doc2) {
 					var $set = {};
 					$set[cacheField] = doc2;
@@ -117,11 +117,13 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 					getRealCollection(collection1, validate).update({_id: doc._id}, {$unset: $unset});
 				}
 			}
+
+
 		});
 	});
 
 	//Update the cached field on the main collection if the matching doc on the target collection is updated
-	collection2.after.update(function(userId, doc, fieldNames) {
+	collection2.after.update(function(userId, doc) {
 		var self = this;
 		Meteor.defer(function() {
 			if(haveDiffFieldValues(fieldsToCopy, doc, self.previous)) {
