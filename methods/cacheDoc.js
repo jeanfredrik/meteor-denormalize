@@ -96,7 +96,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	//Update the cached field on the main collection if a matching doc on the target collection is inserted
 	collection2.after.insert(function(userId, doc) {
 		var self = this;
-		if(Denormalize.debug) var fieldNames = changedFields(fieldsToCopy, doc, self.previous);
+		var fieldNames = Denormalize.debug && changedFields(fieldsToCopy, doc, {});
 
 		Meteor.defer(function() {
 
@@ -121,7 +121,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	//Update the cached field on the main collection if the referenceField field is changed
 	collection1.after.update(function(userId, doc) {
 		var self = this;
-		if(Denormalize.debug) var fieldNames = changedFields(fieldsToCopy, doc, self.previous);
+		var fieldNames = Denormalize.debug && changedFields(fieldsToCopy, doc, self.previous);
 
 		Meteor.defer(function() {
 			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
@@ -156,7 +156,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 	//Update the cached field on the main collection if the matching doc on the target collection is updated
 	collection2.after.update(function(userId, doc) {
 		var self = this;
-		if(Denormalize.debug) var fieldNames = changedFields(fieldsToCopy, doc, self.previous);
+		var fieldNames = Denormalize.debug && changedFields(fieldsToCopy, doc, self.previous);
 
 		Meteor.defer(function() {
 
