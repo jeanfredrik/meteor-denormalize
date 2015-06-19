@@ -52,6 +52,19 @@ Tinytest.addAsync("cacheDoc: Insert post", function(test, next) {
 	}, speed);
 });
 
+Tinytest.addAsync("cacheDoc: Insert another comment", function(test, next) {
+	Comments.insert({
+		_id: 'comment2',
+		post_id: 'post1',
+		content: 'Love it!',
+	});
+	Meteor.setTimeout(function() {
+		test.notEqual(Comments.findOne('comment2')._post, undefined);
+		test.equal(Comments.findOne('comment2')._post.title, Posts.findOne('post1').title);
+		next();
+	}, speed);
+});
+
 Tinytest.add("cacheDoc: Collection helper", function(test) {
 	test.equal(Comments.findOne('comment1').post().title, Posts.findOne('post1').title);
 });
