@@ -66,7 +66,7 @@ DenormalizeRun.prototype.commit = function() {
 				modifier.$unset = $unset;
 			}
 			if(_.size(modifier)) {
-				collection.update(selector, modifier);
+				collection.update(selector, modifier, {multi: true});
 			}
 		});
 	});
