@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jeanfredrik:denormalize',
-  version: '0.6.0',
+  version: '0.7.0',
   summary: 'Provides simple methods for common denormalization tasks',
   git: 'https://github.com/jeanfredrik/meteor-denormalize.git',
   documentation: 'README.md'
@@ -27,11 +27,13 @@ Package.onUse(function(api) {
   ], {where: 'server', weak: true});
 
   api.addFiles('denormalize-common.js');
-  api.export(['Denormalize']);
+  api.addFiles('denormalize-hooks.js', 'server');
 
   api.addFiles('methods/cacheDoc.js', 'server');
   api.addFiles('methods/cacheCount.js', 'server');
   api.addFiles('methods/cacheField.js', 'server');
+
+  api.export(['Denormalize']);
 });
 
 Package.onTest(function(api) {

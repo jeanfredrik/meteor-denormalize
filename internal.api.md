@@ -42,7 +42,7 @@ A callback that can be used in `collection.cacheField()`
 
 Generates a callback that can be used in `collection.cacheField()`. The value will be a concatenation of the fields using `glue`.
 
-> ```Denormalize.fieldsJoiner = function(fields, glue) { ...``` [denormalize-common.js:30](denormalize-common.js#L30)
+> ```Denormalize.fieldsJoiner = function(fields, glue) { ...``` [denormalize-common.js:47](denormalize-common.js#L47)
 
 
 ***
@@ -124,7 +124,7 @@ __Returns__  *{undefined}*
 
 When a document in the target collection is inserted/updated/removed this denormalization updates the count on the references document in the main collection. The reference field is on the target collection.
 
-> ```Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referenceField, options) { ...``` [methods/cacheCount.js:19](methods/cacheCount.js#L19)
+> ```Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referenceField, options) { ...``` [methods/cacheCount.js:11](methods/cacheCount.js#L11)
 
 
 ***
