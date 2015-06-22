@@ -27,11 +27,13 @@ Package.onUse(function(api) {
   ], {where: 'server', weak: true});
 
   api.addFiles('denormalize-common.js');
-  api.export(['Denormalize']);
+  api.addFiles('denormalize-hooks.js', 'server');
 
   api.addFiles('methods/cacheDoc.js', 'server');
   api.addFiles('methods/cacheCount.js', 'server');
   api.addFiles('methods/cacheField.js', 'server');
+
+  api.export(['Denormalize']);
 });
 
 Package.onTest(function(api) {

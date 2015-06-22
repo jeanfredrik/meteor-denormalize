@@ -32,56 +32,35 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value, opti
 	});
 
 	var validate = options.validate;
-	var collection = this;
+	var collection1 = this;
 
-	//Update the cached field after insert
-	collection.after.insert(function(userId, doc) {
-		var self = this;
-		Meteor.defer(function() {
+	Denormalize.addHooks(collection1, fields, {
+		//Update the cached field after insert
+		insert: function(fieldValues, doc) {
 
-			debug('\n'+collection._name+'.cacheField');
-			debug(collection._name+'.after.insert', doc._id);
-			debug('-> Update cache field');
+			debug('\n'+collection1._name+'.cacheField');
+			debug(collection1._name+'.after.insert', doc._id);
 
 			var val = value(doc, fields);
 
 			if(val !== undefined) {
-				var $set = {};
-				$set[cacheField] = val;
-				getRealCollection(collection, validate).update({_id: doc._id}, {$set: $set});
+				this.set(getRealCollection(collection1, validate), doc._id, object(cacheField, val))
 			}
-		});
-	});
+		},
+		//Update the cached field if any of the watched fields are changed
+		update: function(fieldValues, doc) {
 
-	//Update the cached field if any of the watched fields are changed
-	collection.after.update(function(userId, doc) {
-		var self = this;
-		var fieldNames = Denormalize.debug && changedFields(fields, doc, self.previous);
+			debug('\n'+collection1._name+'.cacheField');
+			debug(collection1._name+'.after.update', doc._id);
 
-		Meteor.defer(function() {
+			var val = value(doc, fields);
 
-			debug('\n'+collection._name+'.cacheField');
-			debug(collection._name+'.after.insert', doc._id);
-			debug('watched fields:', fields);
-			debug('changed fields:', fieldNames);
-
-			if(haveDiffFieldValues(fields, doc, self.previous)) {
-				debug('-> Update cache field');
-				var val = value(doc, fields);
-
-				if(val !== undefined) {
-					var $set = {};
-					$set[cacheField] = val;
-					getRealCollection(collection, validate).update({_id: doc._id}, {$set: $set});
-				} else {
-					var $unset = {};
-					$unset[cacheField] = 1;
-					getRealCollection(collection, validate).update({_id: doc._id}, {$unset: $unset});
-				}
+			if(val !== undefined) {
+				this.set(getRealCollection(collection1, validate), doc._id, object(cacheField, val))
 			} else {
-				debug('-> Do nothing');
+				this.unset(getRealCollection(collection1, validate), doc._id, [cacheField])
 			}
-		});
+		},
 	});
 
 }

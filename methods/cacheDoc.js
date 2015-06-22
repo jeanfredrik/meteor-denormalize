@@ -69,130 +69,72 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 		collection1.helpers(helpers);
 	}
 
-	//Update the cached field on the main collection after insert
-	collection1.after.insert(function(userId, doc) {
-		var self = this;
-		Meteor.defer(function() {
-			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+	Denormalize.addHooks(collection1, [referenceField], {
+		//Update the cached field on the main collection after insert
+		insert: function(fieldValues, doc) {
+			var referenceFieldValue = fieldValues[referenceField];
 
 			debug('\n'+collection1._name+'.cacheDoc');
 			debug(collection1._name+'.after.insert', doc._id);
 			debug('referenceField value:', referenceFieldValue);
 
-			if(referenceFieldValue !== undefined) {
-				debug('-> Update cache field');
-				var doc2 = collection2.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind});
-				if(doc2) {
-					var $set = {};
-					$set[cacheField] = doc2;
-					getRealCollection(collection1, validate).update({_id: doc._id}, {$set: $set});
-				}
+			var doc2 = referenceFieldValue && collection2.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind});
+			if(doc2) {
+				debug('$set');
+				this.set(getRealCollection(collection1, validate), doc._id, object(cacheField, doc2));
 			} else {
-				debug('-> Do nothing');
+				debug('$unset');
+				// No unset needed
 			}
-		});
-	});
+		},
 
-	//Update the cached field on the main collection if a matching doc on the target collection is inserted
-	collection2.after.insert(function(userId, doc) {
-		var self = this;
-		var fieldNames = Denormalize.debug && changedFields(fieldsToCopy, doc, {});
-
-		Meteor.defer(function() {
-
-			debug('\n'+collection1._name+'.cacheDoc');
-			debug(collection2._name+'.after.insert', doc._id);
-			debug('fields to copy:', fieldsToCopy);
-			debug('changed fields:', fieldNames);
-
-			if(haveDiffFieldValues(fieldsToCopy, doc, {})) {
-				debug('-> Update cache field');
-				var selector = {};
-				selector[referenceField] = doc._id;
-				var $set = {};
-				$set[cacheField] = Denormalize.getProp(doc, fieldsToCopy, true);
-				getRealCollection(collection1, validate).update(selector, {$set: $set});
-			} else {
-				debug('-> Do nothing');
-			}
-		});
-	});
-
-	//Update the cached field on the main collection if the referenceField field is changed
-	collection1.after.update(function(userId, doc) {
-		var self = this;
-		var fieldNames = Denormalize.debug && changedFields(fieldsToCopy, doc, self.previous);
-
-		Meteor.defer(function() {
-			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
-			var referenceFieldPreviousValue = Denormalize.getProp(self.previous, referenceField);
+		//Update the cached field on the main collection if the referenceField field is changed
+		update: function(fieldValues, doc) {
+			var referenceFieldValue = fieldValues[referenceField];
 
 			debug('\n'+collection1._name+'.cacheDoc');
 			debug(collection1._name+'.after.update', doc._id);
 			debug('referenceField value:', referenceFieldValue);
-			debug('referenceField previous value:', referenceFieldPreviousValue);
 
-			if(referenceFieldValue !== referenceFieldPreviousValue) {
-				debug('-> Update cache field');
-				var doc2 = referenceFieldValue && collection2.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind});
-				debug('doc to cache:', doc2);
-				if(doc2) {
-					var $set = {};
-					$set[cacheField] = doc2;
-					getRealCollection(collection1, validate).update({_id: doc._id}, {$set: $set});
-				} else {
-					var $unset = {};
-					$unset[cacheField] = 1;
-					getRealCollection(collection1, validate).update({_id: doc._id}, {$unset: $unset});
-				}
+			var doc2 = referenceFieldValue && collection2.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind});
+			if(doc2) {
+				debug('$set');
+				this.set(getRealCollection(collection1, validate), doc._id, object(cacheField, doc2));
 			} else {
-				debug('-> Do nothing');
+				debug('$unset');
+				this.unset(getRealCollection(collection1, validate), doc._id, [cacheField]);
 			}
-
-
-		});
+		},
 	});
 
-	//Update the cached field on the main collection if the matching doc on the target collection is updated
-	collection2.after.update(function(userId, doc) {
-		var self = this;
-		var fieldNames = Denormalize.debug && changedFields(fieldsToCopy, doc, self.previous);
+	Denormalize.addHooks(collection2, fieldsToCopy, {
+		//Update the cached field on the main collection if a matching doc on the target collection is inserted
+		insert: function(fieldValues, doc) {
+			debug('\n'+collection1._name+'.cacheDoc');
+			debug(collection2._name+'.after.insert', doc._id);
+			debug('fields to copy:', fieldsToCopy);
+			debug('changed fields:', fieldValues);
 
-		Meteor.defer(function() {
+			this.set(getRealCollection(collection1, validate), object(referenceField, doc._id), object(cacheField, fieldValues));
+		},
 
+		//Update the cached field on the main collection if the matching doc on the target collection is updated
+		update: function(fieldValues, doc) {
 			debug('\n'+collection1._name+'.cacheDoc');
 			debug(collection2._name+'.after.update', doc._id);
 			debug('fields to copy:', fieldsToCopy);
-			debug('changed fields:', fieldNames);
+			debug('changed fields:', fieldValues);
 
-			if(haveDiffFieldValues(fieldsToCopy, doc, self.previous)) {
-				debug('-> Update cache field');
-				var selector = {};
-				selector[referenceField] = doc._id;
-				var $set = {};
-				$set[cacheField] = _.pick(doc, fieldsToCopy);
-				getRealCollection(collection1, validate).update(selector, {$set: $set});
-			} else {
-				debug('-> Do nothing');
-			}
-		});
-	});
+			this.set(getRealCollection(collection1, validate), object(referenceField, doc._id), object(cacheField, fieldValues));
+		},
 
-	//Unset the cached field on the main collection if the matching doc on the target collection is removed
-	collection2.after.remove(function(userId, doc) {
-		var self = this;
-		Meteor.defer(function() {
-
+		//Unset the cached field on the main collection if the matching doc on the target collection is removed
+		remove: function(fieldValues, doc) {
 			debug('\n'+collection1._name+'.cacheDoc');
 			debug(collection2._name+'.after.remove', doc._id);
-			debug('-> Update cache field');
 
-			var selector = {};
-			selector[referenceField] = doc._id;
-			var $unset = {};
-			$unset[cacheField] = 1;
-			getRealCollection(collection1, validate).update(selector, {$unset: $unset});
-		});
+			this.unset(getRealCollection(collection1, validate), object(referenceField, doc._id), [cacheField]);
+		},
 	});
 
 }

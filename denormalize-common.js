@@ -18,6 +18,23 @@ changedFields = function(fields, doc1, doc2) {
 	});
 }
 
+object = function(key, value) {
+	var result = {};
+	result[key] = value;
+	return result;
+}
+
+getFieldNamesObject = function(fields, obj1, obj2) {
+	var result = {};
+	_.each(fields, function(field) {
+		var newValue = Denormalize.getProp(obj1, field);
+		if(newValue !== Denormalize.getProp(obj2, field)) {
+			result[field] = newValue;
+		}
+	});
+	return result;
+}
+
 /**
  * @method Denormalize.fieldsJoiner
  * @private

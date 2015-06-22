@@ -1,11 +1,3 @@
-function updateCount(collection1, collection2, referenceField, cacheField, value, validate) {
-	var selector = {};
-	selector[referenceField] = value;
-	var $set = {};
-	$set[cacheField] = collection2.find(selector).count();
-	getRealCollection(collection1, validate).update({_id: value}, {$set: $set});
-}
-
 /**
  * @method collection.cacheCount
  * @public
@@ -37,82 +29,89 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 	var collection1 = this;
 	var collection2 = collection;
 
-	//Update the count on the main collection after insert
-	collection1.after.insert(function(userId, doc) {
-		var self = this;
-		Meteor.defer(function() {
+	Denormalize.addHooks(collection1, ['_id'], {
+		//Update the count on the main collection after insert
+		insert: function(fieldValues, doc) {
 
 			debug('\n'+collection1._name+'.cacheCount');
 			debug(collection1._name+'.after.insert', doc._id);
-			debug('referenceField value:', doc._id);
-			debug('-> Update cache field');
 
-			updateCount(collection1, collection2, referenceField, cacheField, doc._id);
-		});
+			this.set(getRealCollection(collection1, validate), {_id: doc._id}, object(
+				cacheField,
+				collection2.find(object(
+					referenceField,
+					doc._id
+				)).count()
+			));
+		},
 	});
 
-	//Unset the count when a referencing doc in target collection is inserted
-	collection2.after.insert(function(userId, doc) {
-		var self = this;
-		Meteor.defer(function() {
-			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+	Denormalize.addHooks(collection2, [referenceField], {
+		//Unset the count when a referencing doc in target collection is inserted
+		insert: function(fieldValues, doc) {
+			var referenceFieldValue = fieldValues[referenceField];
 
 			debug('\n'+collection1._name+'.cacheCount');
 			debug(collection2._name+'.after.insert', doc._id);
 			debug('referenceField value:', referenceFieldValue);
 
-			if(referenceFieldValue !== undefined) {
-				debug('-> Update cache field');
-				updateCount(collection1, collection2, referenceField, cacheField, referenceFieldValue, validate);
-			} else {
-				debug('-> Do nothing');
-			}
-		});
-	});
+			this.set(getRealCollection(collection1, validate), {_id: referenceFieldValue}, object(
+				cacheField,
+				collection2.find(object(
+					referenceField,
+					referenceFieldValue
+				)).count()
+			));
+		},
 
-	//Unset the count(s) when a referencing doc in target collection changes foreign key value
-	collection2.after.update(function(userId, doc, fieldNames) {
-		var self = this;
-		Meteor.defer(function() {
-			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
-			var referenceFieldPreviousValue = Denormalize.getProp(self.previous, referenceField);
+		//Unset the count(s) when a referencing doc in target collection changes foreign key value
+		update: function(fieldValues, doc, oldFieldValues, oldDoc) {
+			var referenceFieldValue = fieldValues[referenceField];
+			var oldReferenceFieldValue = oldFieldValues[referenceField];
 
 			debug('\n'+collection1._name+'.cacheDoc');
 			debug(collection2._name+'.after.update', doc._id);
 			debug('referenceField value:', referenceFieldValue);
-			debug('referenceField previous value:', referenceFieldPreviousValue);
+			debug('referenceField previous value:', oldReferenceFieldValue);
 
-			if(referenceFieldValue !== referenceFieldPreviousValue) {
-				debug('-> Update cache field');
-				if(referenceFieldPreviousValue) {
-					updateCount(collection1, collection2, referenceField, cacheField, referenceFieldPreviousValue);
-				}
-				if(referenceFieldValue) {
-					updateCount(collection1, collection2, referenceField, cacheField, referenceFieldValue, validate);
-				}
-			} else {
-				debug('-> Do nothing');
+			if(referenceFieldValue) {
+				this.set(getRealCollection(collection1, validate), {_id: referenceFieldValue}, object(
+					cacheField,
+					collection2.find(object(
+						referenceField,
+						referenceFieldValue
+					)).count()
+				));
 			}
-		});
-	});
+			if(oldReferenceFieldValue) {
+				this.set(getRealCollection(collection1, validate), {_id: oldReferenceFieldValue}, object(
+					cacheField,
+					collection2.find(object(
+						referenceField,
+						oldReferenceFieldValue
+					)).count()
+				));
+			}
+		},
 
-	//Unset the count when a referencing doc in target collection is removed
-	collection2.after.remove(function(userId, doc) {
-		var self = this;
-		Meteor.defer(function() {
-			var referenceFieldValue = Denormalize.getProp(doc, referenceField);
+		//Unset the count when a referencing doc in target collection is removed
+		remove: function(fieldValues, doc) {
+			var referenceFieldValue = fieldValues[referenceField];
 
 			debug('\n'+collection1._name+'.cacheCount');
 			debug(collection2._name+'.after.remove', doc._id);
 			debug('referenceField value:', referenceFieldValue);
 
-			if(referenceFieldValue !== undefined) {
-				debug('-> Update cache field');
-				updateCount(collection1, collection2, referenceField, cacheField, referenceFieldValue, validate);
-			} else {
-				debug('-> Do nothing');
+			if(referenceFieldValue) {
+				this.set(getRealCollection(collection1, validate), {_id: referenceFieldValue}, object(
+					cacheField,
+					collection2.find(object(
+						referenceField,
+						referenceFieldValue
+					)).count()
+				));
 			}
-		});
+		},
 	});
 
 }
