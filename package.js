@@ -14,6 +14,7 @@ Package.onUse(function(api) {
     'check',
     'mongo',
     'underscore',
+    'ejson'
   ], 'server');
 
   //Required 3rd party packages
@@ -39,7 +40,7 @@ Package.onUse(function(api) {
 
 Package.onTest(function(api) {
   api.use('tinytest');
-  api.use(['check', 'mongo', 'autopublish', 'insecure', 'underscore']);
+  api.use(['check', 'mongo', 'autopublish', 'insecure', 'underscore', 'ejson']);
 
   //Weak 3rd party packages
   api.use([
