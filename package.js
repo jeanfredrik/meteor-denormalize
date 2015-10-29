@@ -11,6 +11,7 @@ Package.onUse(function(api) {
 
   //Required core packages
   api.use([
+    'check',
     'mongo',
     'underscore',
   ], 'server');
@@ -38,7 +39,7 @@ Package.onUse(function(api) {
 
 Package.onTest(function(api) {
   api.use('tinytest');
-  api.use(['mongo', 'autopublish', 'insecure', 'underscore']);
+  api.use(['check', 'mongo', 'autopublish', 'insecure', 'underscore']);
 
   //Weak 3rd party packages
   api.use([
