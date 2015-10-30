@@ -112,20 +112,12 @@ ensureDenormalize = function(collection) {
 	collection.after.insert(function(userId, doc) {
 		var topLevelFieldNames = _.keys(doc);
 
-		// Drop out if none of topLevelFieldNames are in watchedTopLevelFields
-		if(_.intersection(collection._denormalize.insert.watchedTopLevelFields, topLevelFieldNames).length == 0) return;
-
 		var currentRun = new DenormalizeRun();
 
 		Meteor.defer(function() {
 			_.each(collection._denormalize.insert.hooks, function(hook) {
-				// Drop out if none of topLevelFieldNames are in watchedTopLevelFields of this hook
-				if(_.intersection(hook.watchedTopLevelFields, topLevelFieldNames).length == 0) return;
 
 				var fieldValues = getFieldNamesObject(hook.watchedFields, doc, {});
-
-				// Drop out if none of fieldValues are in watchedFields of this hook
-				if(_.size(fieldValues) == 0) return;
 
 				var context = new DenormalizeHookContext({
 					fieldValues: fieldValues,

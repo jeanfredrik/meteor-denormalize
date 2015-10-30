@@ -1,6 +1,6 @@
 Package.describe({
   name: 'jeanfredrik:denormalize',
-  version: '0.7.1',
+  version: '0.7.2',
   summary: 'Provides simple methods for common denormalization tasks',
   git: 'https://github.com/jeanfredrik/meteor-denormalize.git',
   documentation: 'README.md'

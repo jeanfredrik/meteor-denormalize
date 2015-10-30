@@ -108,3 +108,27 @@ Denormalize.haveDiffFieldValues = haveDiffFieldValues = function(fields, doc1, d
 		return Denormalize.getProp(doc1, field) !== Denormalize.getProp(doc2, field);
 	});
 }
+
+Denormalize.runHooksNow = function(collection, selector) {
+	var selector = selector || {};
+	if(!collection._denormalize) return;
+
+	collection.find(selector).forEach(function(doc) {
+		var topLevelFieldNames = _.keys(doc);
+
+		var currentRun = new DenormalizeRun();
+
+		_.each(collection._denormalize.insert.hooks, function(hook) {
+
+			var fieldValues = getFieldNamesObject(hook.watchedFields, doc, {});
+
+			var context = new DenormalizeHookContext({
+				fieldValues: fieldValues,
+				doc: doc,
+			}, currentRun);
+			hook.callback.call(context, fieldValues, doc);
+		});
+
+		currentRun.commit();
+	});
+}
