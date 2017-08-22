@@ -16,8 +16,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 
 	check(name, String);
 	check(collection, Mongo.Collection);
-	check(fields, [String]);
-
+	Match.test(fields, Match.OneOf([String], Object))
 	if(!Match.test(options, Object)) {
 		options = {};
 	}
@@ -45,7 +44,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 		validate: Boolean,
 	});
 
-	var fieldsToCopy = fields;
+	var fieldsToCopy = typeof fields == 'array' ? fields : flattenFields(fields);
 	var cacheField = options.cacheField;
 	var referenceField = options.referenceField;
 	var collection1 = this;
