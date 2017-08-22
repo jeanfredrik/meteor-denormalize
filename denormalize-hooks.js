@@ -65,7 +65,7 @@ DenormalizeRun.prototype.commit = function() {
 			_.each(fieldValues, function(value, field) {
 				if(typeof value == 'object'){
 					_.each(value, (val, key) => {
-						set($set, key, val);
+						set($set, field + '.' + key, val);
 					})
 				} else if(value === undefined) {
 					$unset[field] = 1;

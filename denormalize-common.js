@@ -35,6 +35,19 @@ getFieldNamesObject = function(fields, obj1, obj2) {
 	return result;
 }
 
+flattenFields = function(object, prefix){
+	prefix = prefix || '';
+	var fields = [];
+	_.each(object, (val, key) => {
+		if(typeof val == 'object'){
+			fields = _.union(fields, flattenFields(val, prefix + key + '.'));
+		} else {
+			fields.push(prefix + key);
+		}
+	})
+	return fields;
+}
+
 /**
  * @method Denormalize.fieldsJoiner
  * @private
