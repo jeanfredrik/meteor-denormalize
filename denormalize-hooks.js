@@ -43,6 +43,16 @@ DenormalizeRun.prototype.unset = function(collection, selector, fields) {
 		self._set[collection._denormalizeId][selector][field] = undefined;
 	});
 }
+function set(object, path, value){
+	if(path.indexOf('.') > -1){
+		var key = path.slice(0, path.indexOf('.'));
+		if(!object[key]) object[key] = {};
+		path = path.slice(path.indexOf('.') + 1);
+		set(object[key], path, value);
+	} else {
+		object[path] = value;
+	}
+}
 DenormalizeRun.prototype.commit = function() {
 	if(this.isCommitted) return;
 	_.each(this._set, function(docs, collectionId) {
@@ -53,7 +63,11 @@ DenormalizeRun.prototype.commit = function() {
 			var $set = {};
 			var $unset = {};
 			_.each(fieldValues, function(value, field) {
-				if(value === undefined) {
+				if(typeof value == 'object'){
+					_.each(value, (val, key) => {
+						set($set, key, val);
+					})
+				} else if(value === undefined) {
 					$unset[field] = 1;
 				} else {
 					$set[field] = value;
