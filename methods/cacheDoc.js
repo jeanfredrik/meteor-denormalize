@@ -136,4 +136,5 @@ Mongo.Collection.prototype.cacheDoc = function(name, collection, fields, options
 		},
 	});
 
+	autoUpdate(collection, [this._name, name, collection._name, fields, options])
 }

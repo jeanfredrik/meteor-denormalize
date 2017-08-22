@@ -114,4 +114,5 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		},
 	});
 
+	autoUpdate(collection, [this._name, cacheField, collection._name, referenceField, options])
 }

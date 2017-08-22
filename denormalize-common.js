@@ -8,6 +8,11 @@ Denormalize = {};
  */
 Denormalize.debug = false;
 
+if(Meteor.isServer){
+	_DenormalizeCache = new Mongo.Collection('_denormalizeCache');
+}
+
+
 debug = function() {
 	if(Denormalize.debug) console.log.apply(this, arguments);
 };
@@ -34,6 +39,21 @@ getFieldNamesObject = function(fields, obj1, obj2) {
 	});
 	return result;
 }
+var updated = []
+autoUpdate = function(collection, args){
+	args = JSON.stringify(args)
+	Meteor.setTimeout(function(){
+		if(!_DenormalizeCache.findOne({args})){
+			if(updated.indexOf(collection._name) == -1){
+				updated.push(collection._name)
+				console.log('Updating cache:', collection._name)
+				Denormalize.runHooksNow(collection, {})
+			}
+			_DenormalizeCache.insert({args})
+		}
+	}, 1000)
+}
+	
 
 flattenFields = function(object, prefix){
 	prefix = prefix || '';

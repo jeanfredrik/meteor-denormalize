@@ -63,4 +63,5 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, value, opti
 		},
 	});
 
+	autoUpdate(this, [cacheField, fields, value, options])
 }
