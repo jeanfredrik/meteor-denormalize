@@ -19,15 +19,19 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 
 	_.defaults(options, {
 		validate: false,
+		selector: {}
 	});
 
 	check(options, {
 		validate: Boolean,
+		selector: Object
 	});
 
 	var validate = options.validate;
 	var collection1 = this;
 	var collection2 = collection;
+	var selector = options.selector;
+	var watchedFields = _.union([referenceField], _.keys(selector))
 
 	Denormalize.addHooks(collection1, ['_id'], {
 		//Update the count on the main collection after insert
@@ -35,18 +39,18 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 
 			debug('\n'+collection1._name+'.cacheCount');
 			debug(collection1._name+'.after.insert', doc._id);
-
+			var select = object(referenceField, doc._id)
+			if(selector){
+				_.extend(select, selector)
+			}
 			this.set(getRealCollection(collection1, validate), {_id: doc._id}, object(
 				cacheField,
-				collection2.find(object(
-					referenceField,
-					doc._id
-				)).count()
+				collection2.find(select).count()
 			));
 		},
 	});
 
-	Denormalize.addHooks(collection2, [referenceField], {
+	Denormalize.addHooks(collection2, watchedFields, {
 		//Unset the count when a referencing doc in target collection is inserted
 		insert: function(fieldValues, doc) {
 			var referenceFieldValue = fieldValues[referenceField];
@@ -55,16 +59,17 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 			debug(collection2._name+'.after.insert', doc._id);
 			debug('referenceField value:', referenceFieldValue);
 
+			var select = object(referenceField, referenceFieldValue)
+			if(selector){
+				_.extend(select, selector)
+			}
 			this.set(getRealCollection(collection1, validate), {_id: referenceFieldValue}, object(
 				cacheField,
-				collection2.find(object(
-					referenceField,
-					referenceFieldValue
-				)).count()
+				collection2.find(select).count()
 			));
 		},
 
-		//Unset the count(s) when a referencing doc in target collection changes foreign key value
+		//Unset the count(s) when a referencing doc in target collection changes
 		update: function(fieldValues, doc, oldFieldValues, oldDoc) {
 			var referenceFieldValue = fieldValues[referenceField];
 			var oldReferenceFieldValue = oldFieldValues[referenceField];
@@ -74,22 +79,23 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 			debug('referenceField value:', referenceFieldValue);
 			debug('referenceField previous value:', oldReferenceFieldValue);
 
+			if(_.intersection(_.keys(fieldValues), _.keys(selector))){
+				referenceFieldValue = doc[referenceField]
+			}
+			var select = object(referenceField, referenceFieldValue)
+			if(selector){
+				_.extend(select, selector)
+			}
 			if(referenceFieldValue) {
 				this.set(getRealCollection(collection1, validate), {_id: referenceFieldValue}, object(
 					cacheField,
-					collection2.find(object(
-						referenceField,
-						referenceFieldValue
-					)).count()
+					collection2.find(select).count()
 				));
 			}
 			if(oldReferenceFieldValue) {
 				this.set(getRealCollection(collection1, validate), {_id: oldReferenceFieldValue}, object(
 					cacheField,
-					collection2.find(object(
-						referenceField,
-						oldReferenceFieldValue
-					)).count()
+					collection2.find(select).count()
 				));
 			}
 		},
@@ -102,13 +108,15 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 			debug(collection2._name+'.after.remove', doc._id);
 			debug('referenceField value:', referenceFieldValue);
 
+			var select = object(referenceField, referenceFieldValue)
+			if(selector){
+				_.extend(select, selector)
+			}
+
 			if(referenceFieldValue) {
 				this.set(getRealCollection(collection1, validate), {_id: referenceFieldValue}, object(
 					cacheField,
-					collection2.find(object(
-						referenceField,
-						referenceFieldValue
-					)).count()
+					collection2.find(select).count()
 				));
 			}
 		},
