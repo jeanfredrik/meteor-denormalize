@@ -20,7 +20,7 @@ debug = function() {
 }
 
 
-getFieldNamesObject = function(fields, obj1, obj2) {
+getDiff = function(fields, obj1, obj2) {
 	let result = {}
 	_.each(fields, function(field) {
 		let newValue = _.get(obj1, field)
@@ -31,6 +31,7 @@ getFieldNamesObject = function(fields, obj1, obj2) {
 	return result
 }
 let updated = []
+
 autoUpdate = function(collection, args){
 	args = JSON.stringify(args)
 	Meteor.setTimeout(function(){
@@ -61,49 +62,6 @@ flattenFields = function(object, prefix){
 	return fields
 }
 
-Denormalize.getProp = getProp = function(obj, fields, returnObject) {
-	if(_.isString(fields)) {
-		let field = fields
-		if(returnObject) {
-			let result = {}
-			result[field] = getProp(obj, field)
-			return result
-		} else {
-			return _.reduce(field.split('.'), function(value, key) {
-				if (_.isObject(value) && _.isFunction(value[key])) {
-					return value[key]()
-				} else if (_.isObject(value) && !_.isUndefined(value[key])) {
-					return value[key]
-				} else {
-					return
-				}
-			}, obj)
-		}
-	} else if(_.isArray(fields)) {
-		if(returnObject) {
-			return setProps({}, _.object(fields, getProp(obj, fields)))
-		} else {
-			return _.map(fields, function(field) {
-				return getProp(obj, field)
-			})
-		}
-	}
-}
-
-Denormalize.setProps = setProps = function(destination) {
-	_.each(_.rest(arguments), function(obj) {
-		_.each(obj, function(value, key) {
-			let keys = key.split('.')
-			let lastKey = keys.pop()
-			let context = _.reduce(keys, function(context, key) {
-				return context[key] = context[key] || {}
-			}, destination)
-			context[lastKey] = value
-		})
-	})
-	return destination
-}
-
 Denormalize.runHooksNow = function(collection, selector) {
 	selector = selector || {}
 	if(!collection._denormalize) return
@@ -115,7 +73,7 @@ Denormalize.runHooksNow = function(collection, selector) {
 
 		_.each(collection._denormalize.insert.hooks, function(hook) {
 
-			let fieldValues = getFieldNamesObject(hook.watchedFields, doc, {})
+			let fieldValues = getDiff(hook.watchedFields, doc, {})
 
 			let context = new DenormalizeHookContext({
 				fieldValues: fieldValues,

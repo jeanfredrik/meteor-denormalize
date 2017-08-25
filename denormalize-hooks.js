@@ -123,7 +123,7 @@ ensureDenormalize = function(collection) {
 		Meteor.defer(function() {
 			_.each(collection._denormalize.insert.hooks, function(hook) {
 
-				let fieldValues = getFieldNamesObject(hook.watchedFields, doc, {})
+				let fieldValues = getDiff(hook.watchedFields, doc, {})
 
 				let context = new DenormalizeHookContext({
 					fieldValues: fieldValues,
@@ -147,7 +147,7 @@ ensureDenormalize = function(collection) {
 				// Drop out if none of topLevelFieldNames are in watchedTopLevelFields of this hook
 				if(_.intersection(hook.watchedTopLevelFields, topLevelFieldNames).length == 0) return
 
-				let fieldValues = getFieldNamesObject(hook.watchedFields, doc, oldDoc)
+				let fieldValues = getDiff(hook.watchedFields, doc, oldDoc)
 
 				// Drop out if none of fieldValues are in watchedFields of this hook
 				if(_.size(fieldValues) == 0) return
@@ -178,7 +178,7 @@ ensureDenormalize = function(collection) {
 				// Drop out if none of topLevelFieldNames are in watchedTopLevelFields of this hook
 				if(_.intersection(hook.watchedTopLevelFields, topLevelFieldNames).length == 0) return
 
-				let fieldValues = getFieldNamesObject(hook.watchedFields, doc, {})
+				let fieldValues = getDiff(hook.watchedFields, doc, {})
 
 				// Drop out if none of fieldValues are in watchedFields of this hook
 				if(_.size(fieldValues) == 0) return
