@@ -4,54 +4,59 @@ Package.describe({
   summary: 'Provides simple methods for common denormalization tasks',
   git: 'https://github.com/jeanfredrik/meteor-denormalize.git',
   documentation: 'README.md'
-});
+})
 
 Package.onUse(function(api) {
-  api.versionsFrom('1.0');
+  api.versionsFrom('1.0')
 
   //Required core packages
   api.use([
+    'ecmascript',
     'check',
     'mongo',
     'underscore',
     'ejson'
-  ], 'server');
+  ], 'server')
 
   //Required 3rd party packages
   api.use([
     'matb33:collection-hooks@0.7.13',
-  ], 'server');
+  ], 'server')
 
   //Weak 3rd party packages
   api.use([
     'dburles:collection-helpers@1.0.0',
     'aldeed:collection2@2.0.0',
-  ], {where: 'server', weak: true});
+  ], {where: 'server', weak: true})
 
-  api.addFiles('denormalize-common.js');
-  api.addFiles('denormalize-hooks.js', 'server');
+  Npm.depends({
+    "lodash": "4.17.4"
+  })
 
-  api.addFiles('methods/cacheDoc.js', 'server');
-  api.addFiles('methods/cacheCount.js', 'server');
-  api.addFiles('methods/cacheField.js', 'server');
+  api.addFiles('denormalize-common.js')
+  api.addFiles('denormalize-hooks.js', 'server')
 
-  api.export(['Denormalize']);
-});
+  api.addFiles('methods/cacheDoc.js', 'server')
+  api.addFiles('methods/cacheCount.js', 'server')
+  api.addFiles('methods/cacheField.js', 'server')
+
+  api.export(['Denormalize'])
+})
 
 Package.onTest(function(api) {
-  api.use('tinytest');
-  api.use(['check', 'mongo', 'autopublish', 'insecure', 'underscore', 'ejson']);
+  api.use('tinytest')
+  api.use(['check', 'mongo', 'autopublish', 'insecure', 'underscore', 'ejson'])
 
   //Weak 3rd party packages
   api.use([
     'dburles:collection-helpers@1.0.0',
     'aldeed:collection2@2.0.0',
-  ]);
+  ])
 
-  api.use('jeanfredrik:denormalize');
+  api.use('jeanfredrik:denormalize')
 
-  api.export(['Posts', 'Comments', 'Denormalize']);
+  api.export(['Posts', 'Comments', 'Denormalize'])
 
-  api.addFiles('test-utils.js', 'server');
-  api.addFiles('denormalize-tests-server.js', 'server');
-});
+  api.addFiles('test-utils.js', 'server')
+  api.addFiles('denormalize-tests-server.js', 'server')
+})
