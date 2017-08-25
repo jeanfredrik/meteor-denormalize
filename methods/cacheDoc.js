@@ -29,20 +29,19 @@ Mongo.Collection.prototype.cacheDoc = function(name, childCollection, fields, op
 		})
 	}
 
-	if(Match.test(options, Match.ObjectIncluding({helper: Boolean})) && !options.helper) {
-		delete options.helper
-	}
-
 	_.defaults(options, {
 		validate: false,
+		inverse: false
 	})
 
 	check(options, {
 		cacheField: String,
 		referenceField: String,
 		validate: Boolean,
+		inverse: Boolean
 	})
 
+	let inverse = options.inverse
 	let fieldsToCopy = _.isArray(fields) ? fields : flattenFields(fields)
 	let cacheField = options.cacheField
 	let referenceField = options.referenceField
@@ -65,7 +64,9 @@ Mongo.Collection.prototype.cacheDoc = function(name, childCollection, fields, op
 			debug('referenceField value:', referenceFieldValue)
 
 			let cache
-			if(_.isArray(referenceFieldValue)){
+			if(inverse){
+				cache = childCollection.find({[referenceField]:parent._id}), {transform: null, fields: fieldsInFind}).fetch()
+			} else if(_.isArray(referenceFieldValue)){
 				cache = childCollection.find({_id:{$in:referenceFieldValue}}, {transform: null, fields: fieldsInFind}).fetch()
 			} else {
 				cache = childCollection.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind})
@@ -84,7 +85,9 @@ Mongo.Collection.prototype.cacheDoc = function(name, childCollection, fields, op
 			debug('referenceField value:', referenceFieldValue)
 
 			let cache
-			if(_.isArray(referenceFieldValue)){
+			if(inverse){
+				cache = childCollection.find({[referenceField]:parent._id}), {transform: null, fields: fieldsInFind}).fetch()
+			} else if(_.isArray(referenceFieldValue)){
 				cache = childCollection.find({_id:{$in:referenceFieldValue}}, {transform: null, fields: fieldsInFind}).fetch()
 			} else {
 				cache = childCollection.findOne(referenceFieldValue, {transform: null, fields: fieldsInFind})
@@ -105,14 +108,21 @@ Mongo.Collection.prototype.cacheDoc = function(name, childCollection, fields, op
 			debug('fields to copy:', fieldsToCopy)
 			debug('changed fields:', fieldValues)
 
-			parentCollection.find({[referenceField]:child._id}).forEach(parent => {
-				if(_.isArray(parent[referenceField])){
+			if(inverse){
+				parentCollection.find({_id:child[referenceField]}).forEach(parent => {
 					let index = parent[cacheField].length
 					this.set(parentCollection, parent._id, {[cacheField + '.' + index]:fieldValues})
-				} else {
-					this.set(parentCollection, parent._id, {[cacheField]:fieldValues})
-				}
-			})
+				})
+			} else {
+				parentCollection.find({[referenceField]:child._id}).forEach(parent => {
+					if(_.isArray(parent[referenceField])){
+						let index = parent[cacheField].length
+						this.set(parentCollection, parent._id, {[cacheField + '.' + index]:fieldValues})
+					} else {
+						this.set(parentCollection, parent._id, {[cacheField]:fieldValues})
+					}
+				})
+			}
 		},
 
 		//Update the cached field on the main collection if the matching doc on the target collection is updated
@@ -122,17 +132,27 @@ Mongo.Collection.prototype.cacheDoc = function(name, childCollection, fields, op
 			debug('fields to copy:', fieldsToCopy)
 			debug('changed fields:', fieldValues)
 
-			parentCollection.find({[referenceField]:child._id}).forEach(parent => {
-				if(_.isArray(parent[referenceField])){
+			if(inverse){
+				parentCollection.find({_id:child[referenceField]}).forEach(parent => {
 					let index = _.findIndex(parent[cacheField], {_id:child._id})
 					if(index == -1){
 						index = parent[cacheField].length
 					}
 					this.set(parentCollection, parent._id, {[cacheField + '.' + index]:fieldValues})
-				} else {
-					this.set(parentCollection, parent._id, {[cacheField]:fieldValues})
-				}
-			})
+				})
+			} else {
+				parentCollection.find({[referenceField]:child._id}).forEach(parent => {
+					if(_.isArray(parent[referenceField])){
+						let index = _.findIndex(parent[cacheField], {_id:child._id})
+						if(index == -1){
+							index = parent[cacheField].length
+						}
+						this.set(parentCollection, parent._id, {[cacheField + '.' + index]:fieldValues})
+					} else {
+						this.set(parentCollection, parent._id, {[cacheField]:fieldValues})
+					}
+				})
+			}
 		},
 
 		//Unset the cached field on the main collection if the matching doc on the target collection is removed
@@ -140,16 +160,25 @@ Mongo.Collection.prototype.cacheDoc = function(name, childCollection, fields, op
 			debug('\n'+parentCollection._name+'.cacheDoc')
 			debug(childCollection._name+'.after.remove', child._id)
 
-			parentCollection.find({[referenceField]:child._id}).forEach(parent => {
-				if(_.isArray(parent[referenceField])){
+			if(inverse){
+				parentCollection.find({_id:child[referenceField]}).forEach(parent => {
 					let index = _.findIndex(parent[cacheField], {_id:child._id})
 					if(index !== -1){
 						this.unset(parentCollection, parent._id, {[cacheField + '.' + index]:1})
 					}
-				} else {
-					this.unset(parentCollection, parent._id, {[cacheField]:1})
-				}
-			})
+				})
+			} else {
+				parentCollection.find({[referenceField]:child._id}).forEach(parent => {
+					if(_.isArray(parent[referenceField])){
+						let index = _.findIndex(parent[cacheField], {_id:child._id})
+						if(index !== -1){
+							this.unset(parentCollection, parent._id, {[cacheField + '.' + index]:1})
+						}
+					} else {
+						this.unset(parentCollection, parent._id, {[cacheField]:1})
+					}
+				})
+			}
 		},
 	})
 	autoUpdate(this, [name, childCollection._name, fields, options])
