@@ -1,3 +1,4 @@
+import _ from 'lodash'
 /**
  * @method collection.cacheField
  * @public
@@ -10,57 +11,57 @@
  *
  * When a document in the collection is inserted/updated this denormalization updates the cached field with a value based on the same document
  */
-Mongo.Collection.prototype.cacheField = function(cacheField, fields, value, options) {
-	if(value === undefined) {
-		value = Denormalize.fieldsJoiner();
+Mongo.Collection.prototype.cacheField = function(cacheField, fields, callback, options) {
+	if(!callback) {
+		callback = array => _.compact(array).join(', ')
 	}
 
-	check(fields, [String]);
-	check(cacheField, String);
-	check(value, Function);
+	check(fields, [String])
+	check(cacheField, String)
+	check(callback, Function)
 
 	if(!Match.test(options, Object)) {
-		options = {};
+		options = {}
 	}
 
 	_.defaults(options, {
 		validate: false,
-	});
+	})
 
 	check(options, {
 		validate: Boolean,
-	});
+	})
 
-	var validate = options.validate;
-	var collection1 = this;
+	let validate = options.validate
+	let collection = this
 
-	Denormalize.addHooks(collection1, fields, {
+	Denormalize.addHooks(collection, fields, {
 		//Update the cached field after insert
 		insert: function(fieldValues, doc) {
 
-			debug('\n'+collection1._name+'.cacheField');
-			debug(collection1._name+'.after.insert', doc._id);
+			debug('\n'+collection._name+'.cacheField')
+			debug(collection._name+'.after.insert', doc._id)
 
-			var val = value(doc, fields);
+			let val = callback(doc, fields)
 
 			if(val !== undefined) {
-				this.set(getRealCollection(collection1, validate), doc._id, object(cacheField, val))
+				this.set(collection, doc._id, {[cacheField]:val})
 			}
 		},
 		//Update the cached field if any of the watched fields are changed
 		update: function(fieldValues, doc) {
 
-			debug('\n'+collection1._name+'.cacheField');
-			debug(collection1._name+'.after.update', doc._id);
+			debug('\n'+collection._name+'.cacheField')
+			debug(collection._name+'.after.update', doc._id)
 
-			var val = value(doc, fields);
+			let val = callback(doc, fields)
 
 			if(val !== undefined) {
-				this.set(getRealCollection(collection1, validate), doc._id, object(cacheField, val))
+				this.set(collection, doc._id, {[cacheField]:val})
 			} else {
-				this.unset(getRealCollection(collection1, validate), doc._id, [cacheField])
+				this.unset(collection, doc._id, [cacheField])
 			}
 		},
-	});
-
+	})
+	autoUpdate(this, [cacheField, fields, callback, options])
 }
