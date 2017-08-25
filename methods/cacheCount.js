@@ -9,9 +9,9 @@ import _ from 'lodash'
  *
  * When a document in the target collection is inserted/updated/removed this denormalization updates the count on the references document in the main collection. The reference field is on the target collection.
  */
-Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referenceField, options) {
+Mongo.Collection.prototype.cacheCount = function(cacheField, childCollection, referenceField, options) {
 	check(cacheField, String)
-	check(collection, Mongo.Collection)
+	check(childCollection, Mongo.Collection)
 	check(referenceField, String)
 
 	if(!Match.test(options, Object)) {
@@ -28,40 +28,39 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		selector: Object
 	})
 
+	let parentCollection = this
 	let validate = options.validate
-	let collection1 = this
-	let collection2 = collection
 	let selector = options.selector
 	let watchedFields = _.union([referenceField], _.keys(selector))
 
-	Denormalize.addHooks(collection1, ['_id'], {
+	Denormalize.addHooks(parentCollection, ['_id'], {
 		//Update the count on the main collection after insert
 		insert: function(fieldValues, doc) {
 
-			debug('\n'+collection1._name+'.cacheCount')
-			debug(collection1._name+'.after.insert', doc._id)
+			debug('\n'+parentCollection._name+'.cacheCount')
+			debug(parentCollection._name+'.after.insert', doc._id)
 			let select = {[referenceField]:doc._id}
 			if(selector){
 				_.extend(select, selector)
 			}
-			this.set(collection1, {_id: doc._id}, {[cacheField]:collection2.find(select).count()})
+			this.set(parentCollection, {_id: doc._id}, {[cacheField]:childCollection.find(select).count()})
 		},
 	})
 
-	Denormalize.addHooks(collection2, watchedFields, {
+	Denormalize.addHooks(childCollection, watchedFields, {
 		//Unset the count when a referencing doc in target collection is inserted
 		insert: function(fieldValues, doc) {
 			let referenceFieldValue = fieldValues[referenceField]
 
-			debug('\n'+collection1._name+'.cacheCount')
-			debug(collection2._name+'.after.insert', doc._id)
+			debug('\n'+parentCollection._name+'.cacheCount')
+			debug(childCollection._name+'.after.insert', doc._id)
 			debug('referenceField value:', referenceFieldValue)
 
 			let select = {[referenceField]:referenceFieldValue}
 			if(selector){
 				_.extend(select, selector)
 			}
-			this.set(collection1, {_id: referenceFieldValue}, {[cacheField]:collection2.find(select).count()})
+			this.set(parentCollection, {_id: referenceFieldValue}, {[cacheField]:childCollection.find(select).count()})
 		},
 
 		//Unset the count(s) when a referencing doc in target collection changes
@@ -69,8 +68,8 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 			let referenceFieldValue = fieldValues[referenceField]
 			let oldReferenceFieldValue = oldFieldValues[referenceField]
 
-			debug('\n'+collection1._name+'.cacheDoc')
-			debug(collection2._name+'.after.update', doc._id)
+			debug('\n'+parentCollection._name+'.cacheDoc')
+			debug(childCollection._name+'.after.update', doc._id)
 			debug('referenceField value:', referenceFieldValue)
 			debug('referenceField previous value:', oldReferenceFieldValue)
 
@@ -82,10 +81,10 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 				_.extend(select, selector)
 			}
 			if(referenceFieldValue) {
-				this.set(collection1, {_id: referenceFieldValue}, {[cacheField]:collection2.find(select).count()})
+				this.set(parentCollection, {_id: referenceFieldValue}, {[cacheField]:childCollection.find(select).count()})
 			}
 			if(oldReferenceFieldValue) {
-				this.set(collection1, {_id: oldReferenceFieldValue}, {[cacheField]:collection2.find(select).count()})
+				this.set(parentCollection, {_id: oldReferenceFieldValue}, {[cacheField]:childCollection.find(select).count()})
 			}
 		},
 
@@ -93,8 +92,8 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 		remove: function(fieldValues, doc) {
 			let referenceFieldValue = fieldValues[referenceField]
 
-			debug('\n'+collection1._name+'.cacheCount')
-			debug(collection2._name+'.after.remove', doc._id)
+			debug('\n'+parentCollection._name+'.cacheCount')
+			debug(childCollection._name+'.after.remove', doc._id)
 			debug('referenceField value:', referenceFieldValue)
 
 			let select = {[referenceField]:referenceFieldValue}
@@ -103,10 +102,9 @@ Mongo.Collection.prototype.cacheCount = function(cacheField, collection, referen
 			}
 
 			if(referenceFieldValue) {
-				this.set(collection1, {_id: referenceFieldValue}, {[cacheField]:collection2.find(select).count()})
+				this.set(parentCollection, {_id: referenceFieldValue}, {[cacheField]:childCollection.find(select).count()})
 			}
 		},
 	})
-
-	autoUpdate(collection, [this._name, cacheField, collection._name, referenceField, options])
+	autoUpdate(this, [cacheField, childCollection._name, referenceField, options])
 }

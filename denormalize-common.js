@@ -8,17 +8,28 @@ Denormalize = {}
  *
  * Set to `true` to show debug messages.
  */
-Denormalize.debug = false
+Denormalize.debug = true
 
 if(Meteor.isServer){
 	_DenormalizeCache = new Mongo.Collection('_denormalizeCache')
 }
-
+autoUpdate = function(collection, args){
+	args = args.toString().replace(/\/\/.*\n/g, '').replace(/[ \t\n;]/g, '')
+	Meteor.setTimeout(function(){
+		if(!_DenormalizeCache.findOne({args})){
+			if(updated.indexOf(collection._name) == -1){
+				updated.push(collection._name)
+				console.log('Updating cache:', collection._name)
+				Denormalize.runHooksNow(collection, {})
+			}
+			_DenormalizeCache.insert({args})
+		}
+	}, 1000)
+}
 
 debug = function() {
 	if(Denormalize.debug) console.log.apply(this, arguments)
 }
-
 
 getDiff = function(fields, obj1, obj2) {
 	let result = {}
@@ -31,23 +42,6 @@ getDiff = function(fields, obj1, obj2) {
 	return result
 }
 let updated = []
-
-autoUpdate = function(collection, args){
-	args = JSON.stringify(args)
-	Meteor.setTimeout(function(){
-		if(!_DenormalizeCache.findOne({args})){
-			if(updated.indexOf(collection._name) == -1){
-				updated.push(collection._name)
-				console.log('Updating cache:', collection._name)
-				Denormalize.runHooksNow(collection, {})
-			}
-			_DenormalizeCache.insert({args})
-		} else {
-			Denormalize.runHooksNow(collection, {})
-		}
-	}, 1000)
-}
-	
 
 flattenFields = function(object, prefix){
 	prefix = prefix || ''

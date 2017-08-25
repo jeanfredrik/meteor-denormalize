@@ -72,6 +72,9 @@ DenormalizeRun.prototype.commit = function() {
 				modifier.$unset = $unset
 			}
 			if(_.size(modifier)) {
+				debug('UPDATE ' + collection._name.toUpperCase())
+				debug('selector:', selector)
+				debug('modifier:', modifier)
 				collection.update(selector, modifier, {multi: true})
 			}
 		})

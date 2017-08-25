@@ -1,8 +1,8 @@
 Package.describe({
-  name: 'jeanfredrik:denormalize',
-  version: '0.7.2',
+  name: 'herteby:denormalize',
+  version: '0.8.0',
   summary: 'Provides simple methods for common denormalization tasks',
-  git: 'https://github.com/jeanfredrik/meteor-denormalize.git',
+  git: 'https://github.com/herteby/meteor-denormalize.git',
   documentation: 'README.md'
 })
 
@@ -10,11 +10,10 @@ Package.onUse(function(api) {
   api.versionsFrom('1.0')
 
   //Required core packages
+  api.use(['ecmascript'])
   api.use([
-    'ecmascript',
     'check',
     'mongo',
-    'underscore',
     'ejson'
   ], 'server')
 
@@ -45,7 +44,7 @@ Package.onUse(function(api) {
 
 Package.onTest(function(api) {
   api.use('tinytest')
-  api.use(['check', 'mongo', 'autopublish', 'insecure', 'underscore', 'ejson'])
+  api.use(['check', 'mongo', 'autopublish', 'insecure', 'ejson'])
 
   //Weak 3rd party packages
   api.use([
@@ -53,7 +52,7 @@ Package.onTest(function(api) {
     'aldeed:collection2@2.0.0',
   ])
 
-  api.use('jeanfredrik:denormalize')
+  api.use('herteby:denormalize')
 
   api.export(['Posts', 'Comments', 'Denormalize'])
 

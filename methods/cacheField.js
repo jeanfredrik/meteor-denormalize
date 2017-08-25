@@ -33,36 +33,35 @@ Mongo.Collection.prototype.cacheField = function(cacheField, fields, callback, o
 	})
 
 	let validate = options.validate
-	let collection1 = this
+	let collection = this
 
-	Denormalize.addHooks(collection1, fields, {
+	Denormalize.addHooks(collection, fields, {
 		//Update the cached field after insert
 		insert: function(fieldValues, doc) {
 
-			debug('\n'+collection1._name+'.cacheField')
-			debug(collection1._name+'.after.insert', doc._id)
+			debug('\n'+collection._name+'.cacheField')
+			debug(collection._name+'.after.insert', doc._id)
 
 			let val = callback(doc, fields)
 
 			if(val !== undefined) {
-				this.set(collection1, doc._id, {[cacheField]:val})
+				this.set(collection, doc._id, {[cacheField]:val})
 			}
 		},
 		//Update the cached field if any of the watched fields are changed
 		update: function(fieldValues, doc) {
 
-			debug('\n'+collection1._name+'.cacheField')
-			debug(collection1._name+'.after.update', doc._id)
+			debug('\n'+collection._name+'.cacheField')
+			debug(collection._name+'.after.update', doc._id)
 
 			let val = callback(doc, fields)
 
 			if(val !== undefined) {
-				this.set(collection1, doc._id, {[cacheField]:val})
+				this.set(collection, doc._id, {[cacheField]:val})
 			} else {
-				this.unset(collection1, doc._id, [cacheField])
+				this.unset(collection, doc._id, [cacheField])
 			}
 		},
 	})
-
 	autoUpdate(this, [cacheField, fields, callback, options])
 }
