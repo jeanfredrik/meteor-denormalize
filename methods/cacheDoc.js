@@ -13,10 +13,12 @@ import _ from 'lodash'
  *
  * When a document in the target collection is inserted/updated/removed this denormalization saves a copy of the document in the main collection. The reference field is on the main collection.
  */
+
 Mongo.Collection.prototype.cacheDoc = function(name, childCollection, fields, options) {
 
 	check(name, String)
 	check(childCollection, Mongo.Collection)
+
 	Match.test(fields, Match.OneOf([String], Object))
 	if(!Match.test(options, Object)) {
 		options = {}
@@ -55,6 +57,7 @@ Mongo.Collection.prototype.cacheDoc = function(name, childCollection, fields, op
 	if(!_.includes(fieldsTopCopy, childField)){
 		fieldsToCopy.push(childField)
 	}
+
 	//Fields specifier for Mongo.Collection.find
 	let fieldsInFind = {}
 	_.each(fieldsToCopy, function(field) {
